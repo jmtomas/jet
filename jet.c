@@ -7,7 +7,7 @@
 int main(int argc, char *argv[]) {
 	char *buffer = 0;
 	if (argc > 1) {
-		int file_descriptor = open(argv[1], O_RDWR);
+		int file_descriptor = open(argv[1], O_RDONLY);
 
 		struct stat file_stat;
 		stat(argv[1], &file_stat);
