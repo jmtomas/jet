@@ -1,11 +1,12 @@
+#include <stdint.h>
 #include <string.h>
 
 #define PAGE_SIZE 1024
 
 struct page {
-	char contents[PAGE_SIZE];
-	char *gap_start;
-	char *gap_end;
+	uint8_t contents[PAGE_SIZE];
+	uint8_t *gap_start;
+	uint8_t *gap_end;
 	struct page *next;
 	struct page *prev;
 };
@@ -75,7 +76,7 @@ static inline int page_is_empty(struct page *page) {
 		&& page->gap_end   == page->contents + PAGE_SIZE - 1;
 }
 
-void insert_into_page(struct page *page, char c) {
+void insert_into_page(struct page *page, uint8_t c) {
 	if (!page_is_full(page)) {
 		*(page->gap_start) = c;
 		page->gap_start++;
