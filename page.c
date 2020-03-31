@@ -4,7 +4,7 @@
 #define PAGE_SIZE 1024
 
 struct page {
-	uint8_t contents[PAGE_SIZE];
+	uint8_t buffer[PAGE_SIZE];
 	uint8_t *gap_start;
 	uint8_t *gap_end;
 	struct page *next;
@@ -13,22 +13,22 @@ struct page {
 
 struct page *new_page() {
 	struct page *result = malloc(sizeof(struct page));
-	result->gap_start = result->contents;
-	result->gap_end = result->contents + PAGE_SIZE - 1;
+	result->gap_start = result->buffer;
+	result->gap_end = result->buffer + PAGE_SIZE - 1;
 	result->next = 0;
 	result->prev = 0;
 	return result;
 }
 
 static inline void set_half_page_gap(struct page *page) {
-	page->gap_start = page->contents + PAGE_SIZE / 2;
-	page->gap_end = page->contents + PAGE_SIZE - 1;
+	page->gap_start = page->buffer + PAGE_SIZE / 2;
+	page->gap_end = page->buffer + PAGE_SIZE - 1;
 }
 
 void split_page(struct page *first_half) {
 	struct page *second_half = new_page();
 
-	memcpy(second_half->contents, first_half->contents + PAGE_SIZE / 2, PAGE_SIZE / 2 - 1);
+	memcpy(second_half->buffer, first_half->buffer + PAGE_SIZE / 2, PAGE_SIZE / 2 - 1);
 
 	set_half_page_gap(first_half);
 	set_half_page_gap(second_half);
@@ -72,8 +72,8 @@ static inline int page_is_full(struct page *page) {
 }
 
 static inline int page_is_empty(struct page *page) {
-	return page->gap_start == page->contents
-		&& page->gap_end   == page->contents + PAGE_SIZE - 1;
+	return page->gap_start == page->buffer
+		&& page->gap_end   == page->buffer + PAGE_SIZE - 1;
 }
 
 void insert_into_page(struct page *page, uint8_t c) {
@@ -84,7 +84,7 @@ void insert_into_page(struct page *page, uint8_t c) {
 }
 
 void erase_from_page(struct page *page) {
-	if (page->gap_start != page->contents) {
+	if (page->gap_start != page->buffer) {
 		page->gap_start--;
 	}
 }
