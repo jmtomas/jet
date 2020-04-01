@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define PAGE_SIZE 4096
 
