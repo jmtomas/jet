@@ -74,7 +74,7 @@ void insert_into_page(struct page *page, uint8_t c) {
 	}
 }
 
-void erase_from_page(struct page *page) {
+void delete_from_page(struct page *page) {
 	if (page->gap_start != page->buffer) {
 		page->gap_start--;
 	}
