@@ -67,17 +67,8 @@ void move_gap(struct page *page, int target) {
 	}
 }
 
-static inline int page_is_full(struct page *page) {
-	return page->gap_start == page->gap_end;
-}
-
-static inline int page_is_empty(struct page *page) {
-	return page->gap_start == page->buffer
-		&& page->gap_end   == page->buffer + PAGE_SIZE - 1;
-}
-
 void insert_into_page(struct page *page, uint8_t c) {
-	if (!page_is_full(page)) {
+	if (page->gap_start != page->gap_end) {
 		*(page->gap_start) = c;
 		page->gap_start++;
 	}
