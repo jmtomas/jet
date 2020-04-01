@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define PAGE_SIZE 1024
+#define PAGE_SIZE 4096
 
 struct page {
 	uint8_t buffer[PAGE_SIZE];
