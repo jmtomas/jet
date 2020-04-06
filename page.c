@@ -15,7 +15,7 @@ struct page {
 struct page *new_page() {
 	struct page *result = malloc(sizeof(struct page));
 	result->gap_start = result->buffer;
-	result->gap_end = result->buffer + PAGE_SIZE - 1;
+	result->gap_end = result->buffer + PAGE_SIZE;
 	result->next = 0;
 	result->prev = 0;
 	return result;
@@ -23,7 +23,7 @@ struct page *new_page() {
 
 static inline void set_half_page_gap(struct page *page) {
 	page->gap_start = page->buffer + PAGE_SIZE / 2;
-	page->gap_end = page->buffer + PAGE_SIZE - 1;
+	page->gap_end = page->buffer + PAGE_SIZE;
 }
 
 void split_page(struct page *first_half) {
@@ -55,14 +55,14 @@ void delete_page(struct page *page) {
 void move_gap(struct page *page, int target) {
 	while(target) {
 		if (target > 0) {
-			page->gap_end++;
 			*(page->gap_start) = *(page->gap_end);
 			page->gap_start++;
+			page->gap_end++;
 			target--;
 		} else {
+			page->gap_end--;
 			page->gap_start--;
 			*(page->gap_end) = *(page->gap_start);
-			page->gap_end--;
 			target++;
 		}
 	}
