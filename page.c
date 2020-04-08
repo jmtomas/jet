@@ -42,7 +42,7 @@ void split_page(struct page *first_half) {
 	first_half->next = second_half;
 }
 
-void delete_page(struct page *page) {
+void free_page(struct page *page) {
 	if (page->next) {
 		page->next->prev = page->prev;
 	}
