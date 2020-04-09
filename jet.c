@@ -32,14 +32,28 @@ int main(int argc, char *argv[]) {
 	keypad(stdscr, TRUE);
 
 	int window_height = getmaxy(stdscr);
+	int current_line = 0;
+	int number_of_lines = 0;
+	for (int i = 0; i < file_size; i++) {
+		if (buffer[i] == '\n') number_of_lines++;
+	}
 	while (1) {
-		int current_line = 0;
-		for (int i = 0; i < file_size && current_line < window_height; i++) {
-			addch(buffer[i]);
-			if (buffer[i] == '\n') current_line++;
+		int iter_line = 0;
+		for (int i = 0; i < file_size && iter_line < window_height + current_line; i++) {
+			if (iter_line >= current_line) addch(buffer[i]);
+			if (buffer[i] == '\n') iter_line++;
 		}
-		getch();
+
+		int input = getch();
 		clear();
+
+		switch (input) {
+			case KEY_UP:
+				if (current_line > 0) current_line--;
+				break;
+			case KEY_DOWN:
+				if (current_line < number_of_lines) current_line++;
+		}
 	}
 
 	endwin();
