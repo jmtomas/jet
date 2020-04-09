@@ -31,9 +31,12 @@ int main(int argc, char *argv[]) {
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
+	int window_height = getmaxy(stdscr);
 	while (1) {
-		for (int i = 0; i < file_size; i++) {
+		int current_line = 0;
+		for (int i = 0; i < file_size && current_line < window_height; i++) {
 			addch(buffer[i]);
+			if (buffer[i] == '\n') current_line++;
 		}
 		getch();
 		clear();
