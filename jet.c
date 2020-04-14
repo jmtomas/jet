@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 				if (current_line > 0) current_line--;
 				break;
 			case KEY_DOWN:
-				if (current_line < number_of_lines) current_line++;
+				if (current_line < number_of_lines - window_height) current_line++;
 		}
 	}
 
