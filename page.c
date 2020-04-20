@@ -12,6 +12,33 @@ struct page {
 	struct page *prev;
 };
 
+struct point {
+	struct page *current_page;
+	uint16_t offset;
+};
+
+void move_point_forward(struct point *point) {
+	point->offset++;
+	if (point->offset == point->current_page->gap_start + 1) {
+		point->offset = point->current_page->gap_end;
+	}
+	if (point->offset == PAGE_SIZE) {
+		point->offset = 0;
+		point->current_page = point->current_page->next;
+	}
+}
+
+void move_point_backward(struct point *point) {
+	if (point->offset == 0) {
+		point->offset = PAGE_SIZE;
+		point->current_page = point->current_page->prev;
+	}
+	point->offset--;
+	if (point->offset == point->current_page->gap_end - 1) {
+		point->offset = point->current_page->gap_start;
+	}
+}
+
 struct page *new_page() {
 	struct page *result = malloc(sizeof(struct page));
 	result->buffer = malloc(PAGE_SIZE);
