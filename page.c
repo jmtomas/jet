@@ -144,3 +144,7 @@ void delete_at_point(struct point *point) {
 		page->element_count--;
 	}
 }
+
+uint8_t get_element(struct point *point) {
+	return point->current_page->buffer[index_to_offset(point->current_page, point->index)];
+}
