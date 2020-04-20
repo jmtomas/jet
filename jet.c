@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <curses.h>
+#include "page.c"
 
 int main(int argc, char *argv[]) {
 	char *buffer = 0;

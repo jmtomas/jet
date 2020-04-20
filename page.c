@@ -83,19 +83,24 @@ void free_page(struct page **page) {
 	free(tmp);
 }
 
-void move_gap(struct page *page, int target) {
-	while(target) {
-		if (target > 0) {
-			page->buffer[page->gap_start] = page->buffer[page->gap_end];
-			page->gap_start++;
-			page->gap_end++;
-			target--;
-		} else {
-			page->gap_end--;
-			page->gap_start--;
-			page->buffer[page->gap_end] = page->buffer[page->gap_start];
-			target++;
-		}
+void move_gap_forward(struct page *page) {
+	page->buffer[page->gap_start] = page->buffer[page->gap_end];
+	page->gap_start++;
+	page->gap_end++;
+}
+
+void move_gap_backward(struct page *page) {
+	page->gap_end--;
+	page->gap_start--;
+	page->buffer[page->gap_end] = page->buffer[page->gap_start];
+}
+
+void move_gap(struct page *page, uint16_t offset) {
+	while (page->gap_start < offset) {
+		move_gap_forward(page);
+	}
+	while (page->gap_start > offset) {
+		move_gap_backward(page);
 	}
 }
 
@@ -107,7 +112,7 @@ void insert_into_page(struct page *page, uint8_t c) {
 }
 
 void delete_from_page(struct page *page) {
-	if (page->gap_start != page->buffer) {
+	if (page->gap_start != 0) {
 		page->gap_start--;
 	}
 }
