@@ -8,34 +8,43 @@ struct page {
 	uint8_t *buffer;
 	uint16_t gap_start;
 	uint16_t gap_end;
+	uint16_t element_count;
 	struct page *next;
 	struct page *prev;
 };
 
 struct point {
 	struct page *current_page;
-	uint16_t offset;
+	uint16_t index;
 };
 
-void move_point_forward(struct point *point) {
-	point->offset++;
-	if (point->offset == point->current_page->gap_start + 1) {
-		point->offset = point->current_page->gap_end;
+uint16_t index_to_offset(struct page *page, uint16_t index) {
+	if (index < page->gap_start) {
+		return index;
+	} else {
+		return index + (page->gap_end - page->gap_start);
 	}
-	if (point->offset == PAGE_SIZE) {
-		point->offset = 0;
-		point->current_page = point->current_page->next;
+}
+
+void move_point_forward(struct point *point) {
+	struct page *page = point->current_page;
+	if (point->index < page->element_count) {
+		point->index++;
+	}
+	if (point->index == page->element_count && page->next) {
+		point->index = 0;
+		point->current_page = page->next;
 	}
 }
 
 void move_point_backward(struct point *point) {
-	if (point->offset == 0) {
-		point->offset = PAGE_SIZE;
-		point->current_page = point->current_page->prev;
+	struct page *page = point->current_page;
+	if (point->index == 0 && page->prev) {
+		point->index = page->prev->element_count;
+		point->current_page = page->prev;
 	}
-	point->offset--;
-	if (point->offset == point->current_page->gap_end - 1) {
-		point->offset = point->current_page->gap_start;
+	if (point->index > 0) {
+		point->index--;
 	}
 }
 
@@ -95,11 +104,11 @@ void move_gap_backward(struct page *page) {
 	page->buffer[page->gap_end] = page->buffer[page->gap_start];
 }
 
-void move_gap(struct page *page, uint16_t offset) {
-	while (page->gap_start < offset) {
+void move_gap(struct page *page, uint16_t index) {
+	while (page->gap_end < index_to_offset(page, index)) {
 		move_gap_forward(page);
 	}
-	while (page->gap_start > offset) {
+	while (page->gap_end > index_to_offset(page, index)) {
 		move_gap_backward(page);
 	}
 }
@@ -108,13 +117,13 @@ void insert_at_point(struct point *point, uint8_t c) {
 	struct page *page = point->current_page;
 	if (page->gap_start == page->gap_end) {
 		split_page(page);
-		if (point->offset >= PAGE_SIZE / 2) {
+		if (point->index >= PAGE_SIZE / 2) {
 			point->current_page = point->current_page->next;
-			point->offset -= PAGE_SIZE / 2;
+			point->index -= PAGE_SIZE / 2;
 			page = point->current_page;
 		}
 	}
-	move_gap(page, point->offset);
+	move_gap(page, point->index);
 	page->buffer[page->gap_start] = c;
 	page->gap_start++;
 	move_point_forward(point);
