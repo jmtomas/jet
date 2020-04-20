@@ -58,25 +58,23 @@ struct page *new_page() {
 	return result;
 }
 
-static inline void set_half_page_gap(struct page *page) {
-	page->gap_start = PAGE_SIZE / 2;
-	page->gap_end = PAGE_SIZE;
-}
+void split_page(struct page *front) {
+	struct page *back = new_page();
 
-void split_page(struct page *first_half) {
-	struct page *second_half = new_page();
+	memcpy(back->buffer, front->buffer, PAGE_SIZE / 2);
 
-	memcpy(second_half->buffer, first_half->buffer + PAGE_SIZE / 2, PAGE_SIZE / 2 - 1);
+	front->gap_start = 0;
+	front->gap_end = PAGE_SIZE / 2;
 
-	set_half_page_gap(first_half);
-	set_half_page_gap(second_half);
+	back->gap_start = PAGE_SIZE / 2;
+	back->gap_end = PAGE_SIZE;
 
-	if (first_half->next) {
-		first_half->next->prev = second_half;
+	if (front->prev) {
+		front->prev->next = back;
 	}
-	second_half->next = first_half->next;
-	second_half->prev = first_half;
-	first_half->next = second_half;
+	back->prev = front->prev;
+	back->next = front;
+	front->prev = back;
 }
 
 void free_page(struct page **page) {
@@ -117,16 +115,15 @@ void insert_at_point(struct point *point, uint8_t c) {
 	struct page *page = point->current_page;
 	if (page->gap_start == page->gap_end) {
 		split_page(page);
-		if (point->index >= PAGE_SIZE / 2) {
-			point->current_page = point->current_page->next;
-			point->index -= PAGE_SIZE / 2;
+		if (point->index < PAGE_SIZE / 2) {
+			point->current_page = point->current_page->prev;
 			page = point->current_page;
 		}
 	}
 	move_gap(page, point->index);
 	page->buffer[page->gap_start] = c;
 	page->gap_start++;
-	move_point_forward(point);
+	page->element_count++;
 }
 
 void delete_from_page(struct page *page) {
