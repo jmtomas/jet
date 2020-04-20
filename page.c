@@ -5,7 +5,7 @@
 #define PAGE_SIZE 4096
 
 struct page {
-	uint8_t buffer[PAGE_SIZE];
+	uint8_t *buffer;
 	uint16_t gap_start;
 	uint16_t gap_end;
 	struct page *next;
@@ -14,6 +14,7 @@ struct page {
 
 struct page *new_page() {
 	struct page *result = malloc(sizeof(struct page));
+	result->buffer = malloc(PAGE_SIZE);
 	result->gap_start = 0;
 	result->gap_end = PAGE_SIZE;
 	result->next = 0;
@@ -51,6 +52,7 @@ void free_page(struct page **page) {
 	}
 	struct page *tmp = *page;
 	*page = (*page)->prev ?: (*page)->next;
+	free(tmp->buffer);
 	free(tmp);
 }
 
