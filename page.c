@@ -42,14 +42,16 @@ void split_page(struct page *first_half) {
 	first_half->next = second_half;
 }
 
-void free_page(struct page *page) {
-	if (page->next) {
-		page->next->prev = page->prev;
+void free_page(struct page **page) {
+	if ((*page)->prev) {
+		(*page)->prev->next = (*page)->next;
 	}
-	if (page->prev) {
-		page->prev->next = page->next;
+	if ((*page)->next) {
+		(*page)->next->prev = (*page)->prev;
 	}
-	free(page);
+	struct page *tmp = *page;
+	*page = (*page)->prev ?: (*page)->next;
+	free(tmp);
 }
 
 void move_gap(struct page *page, int target) {
