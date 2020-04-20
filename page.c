@@ -104,11 +104,20 @@ void move_gap(struct page *page, uint16_t offset) {
 	}
 }
 
-void insert_into_page(struct page *page, uint8_t c) {
-	if (page->gap_start != page->gap_end) {
-		page->buffer[page->gap_start] = c;
-		page->gap_start++;
+void insert_at_point(struct point *point, uint8_t c) {
+	struct page *page = point->current_page;
+	if (page->gap_start == page->gap_end) {
+		split_page(page);
+		if (point->offset >= PAGE_SIZE / 2) {
+			point->current_page = point->current_page->next;
+			point->offset -= PAGE_SIZE / 2;
+			page = point->current_page;
+		}
 	}
+	move_gap(page, point->offset);
+	page->buffer[page->gap_start] = c;
+	page->gap_start++;
+	move_point_forward(point);
 }
 
 void delete_from_page(struct page *page) {
