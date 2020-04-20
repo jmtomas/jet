@@ -6,24 +6,24 @@
 
 struct page {
 	uint8_t buffer[PAGE_SIZE];
-	uint8_t *gap_start;
-	uint8_t *gap_end;
+	uint16_t gap_start;
+	uint16_t gap_end;
 	struct page *next;
 	struct page *prev;
 };
 
 struct page *new_page() {
 	struct page *result = malloc(sizeof(struct page));
-	result->gap_start = result->buffer;
-	result->gap_end = result->buffer + PAGE_SIZE;
+	result->gap_start = 0;
+	result->gap_end = PAGE_SIZE;
 	result->next = 0;
 	result->prev = 0;
 	return result;
 }
 
 static inline void set_half_page_gap(struct page *page) {
-	page->gap_start = page->buffer + PAGE_SIZE / 2;
-	page->gap_end = page->buffer + PAGE_SIZE;
+	page->gap_start = PAGE_SIZE / 2;
+	page->gap_end = PAGE_SIZE;
 }
 
 void split_page(struct page *first_half) {
@@ -57,14 +57,14 @@ void free_page(struct page **page) {
 void move_gap(struct page *page, int target) {
 	while(target) {
 		if (target > 0) {
-			*(page->gap_start) = *(page->gap_end);
+			page->buffer[page->gap_start] = page->buffer[page->gap_end];
 			page->gap_start++;
 			page->gap_end++;
 			target--;
 		} else {
 			page->gap_end--;
 			page->gap_start--;
-			*(page->gap_end) = *(page->gap_start);
+			page->buffer[page->gap_end] = page->buffer[page->gap_start];
 			target++;
 		}
 	}
@@ -72,7 +72,7 @@ void move_gap(struct page *page, int target) {
 
 void insert_into_page(struct page *page, uint8_t c) {
 	if (page->gap_start != page->gap_end) {
-		*(page->gap_start) = c;
+		page->buffer[page->gap_start] = c;
 		page->gap_start++;
 	}
 }
