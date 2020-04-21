@@ -58,23 +58,25 @@ struct page *new_page() {
 	return result;
 }
 
-void split_page(struct page *front) {
-	struct page *back = new_page();
+void split_page(struct page *back) {
+	struct page *front = new_page();
 
-	memcpy(back->buffer, front->buffer, PAGE_SIZE / 2);
+	memcpy(front->buffer, back->buffer + PAGE_SIZE / 2, PAGE_SIZE / 2);
 
-	front->gap_start = 0;
-	front->gap_end = PAGE_SIZE / 2;
+	front->gap_start = PAGE_SIZE / 2;
+	front->gap_end = PAGE_SIZE;
+	front->element_count = PAGE_SIZE / 2;
 
 	back->gap_start = PAGE_SIZE / 2;
 	back->gap_end = PAGE_SIZE;
+	back->element_count = PAGE_SIZE / 2;
 
-	if (front->prev) {
-		front->prev->next = back;
+	if (back->next) {
+		back->next->prev = front;
 	}
-	back->prev = front->prev;
-	back->next = front;
+	front->next = back->next;
 	front->prev = back;
+	back->next = front;
 }
 
 void free_page(struct page *page) {
@@ -112,9 +114,10 @@ void insert_at_point(struct point *point, uint8_t c) {
 	struct page *page = point->current_page;
 	if (page->gap_start == page->gap_end) {
 		split_page(page);
-		if (point->index < PAGE_SIZE / 2) {
-			page = page->prev;
+		if (point->index >= PAGE_SIZE / 2) {
+			page = page->next;
 			point->current_page = page;
+			point->index -= PAGE_SIZE / 2;
 		}
 	}
 	move_gap(page, point->index);
