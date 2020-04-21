@@ -121,6 +121,7 @@ void insert_at_point(struct point *point, uint8_t c) {
 	page->buffer[page->gap_start] = c;
 	page->gap_start++;
 	page->element_count++;
+	move_point_forward(point);
 }
 
 void delete_at_point(struct point *point) {
@@ -142,6 +143,7 @@ void delete_at_point(struct point *point) {
 	if (page->gap_start != 0) {
 		page->gap_start--;
 		page->element_count--;
+		move_point_backward(point);
 	}
 }
 
