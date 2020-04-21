@@ -4,7 +4,9 @@
 
 int main() {
 	int exit = 0;
-	struct page *p = new_page();
+	struct page *page = new_page();
+	struct point point = {0};
+	point.current_page = page;
 
 	initscr();
 	cbreak();
@@ -14,32 +16,36 @@ int main() {
 	keypad(stdscr, TRUE);
 
 	while (!exit) {
-		int gap_start = p->gap_start - p->buffer;
-		int gap_end = p->gap_end - p->buffer;
-		for (int i = 0; i < gap_start; i++) {
-			addch(p->buffer[i]);
-		}
-		for (int i = gap_start; i < gap_end; i++) {
-			addch('_');
-		}
-		for (int i = gap_end; i < PAGE_SIZE; i++) {
-			addch(p->buffer[i]);
+		clear();
+
+		struct page *iter = page;
+		while (iter) {
+			addch('|');
+			for (int i = 0; i < iter->gap_start; i++) {
+				addch(iter->buffer[i]);
+			}
+			for (int i = iter->gap_start; i < iter->gap_end; i++) {
+				addch('_');
+			}
+			for (int i = iter->gap_end; i < PAGE_SIZE; i++) {
+				addch(iter->buffer[i]);
+			}
+			iter = iter->next;
 		}
 
 		int input = getch();
-		clear();
 		switch (input) {
 			case KEY_LEFT:
-				move_gap(p, -1);
+				move_point_backward(&point);
 				break;
 			case KEY_RIGHT:
-				move_gap(p, 1);
+				move_point_forward(&point);
 				break;
 			case KEY_BACKSPACE:
-				delete_from_page(p);
+				delete_at_point(&point);
 				break;
 			default:
-				insert_into_page(p, input);
+				insert_at_point(&point, input);
 		}
 	}
 
