@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <curses.h>
 #include "page.c"
+#include "point.c"
 
 int main(int argc, char *argv[]) {
 	initscr();
@@ -33,7 +34,7 @@ int main(int argc, char *argv[]) {
 
 	int number_of_lines = 0;
 	for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
-		if (get_element(&i) == '\n') number_of_lines++;
+		if (element(&i) == '\n') number_of_lines++;
 	}
 
 	while (1) {
@@ -42,8 +43,8 @@ int main(int argc, char *argv[]) {
 
 			int iter_line = 0;
 			for (struct point i = {page, 0}; !at_eof(&i) && iter_line < window_height + current_line; move_point_forward(&i)) {
-				if (iter_line >= current_line) addch(get_element(&i));
-				if (get_element(&i) == '\n') iter_line++;
+				if (iter_line >= current_line) addch(element(&i));
+				if (element(&i) == '\n') iter_line++;
 			}
 		}
 
