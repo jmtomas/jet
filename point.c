@@ -60,9 +60,7 @@ void insert_at_point(struct point *point, uint8_t c) {
 		}
 	}
 	align_gap(point);
-	point->page->elements[point->page->gap_start] = c;
-	point->page->gap_start++;
-	point->page->element_count++;
+	insert_at_gap(point->page, c);
 	move_point_forward(point);
 }
 
@@ -79,9 +77,6 @@ void delete_at_point(struct point *point) {
 		}
 	}
 	align_gap(point);
-	if (point->page->gap_start != 0) {
-		point->page->gap_start--;
-		point->page->element_count--;
-		move_point_backward(point);
-	}
+	delete_at_gap(point->page);
+	move_point_backward(point);
 }
