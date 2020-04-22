@@ -8,23 +8,6 @@
 #include "page.c"
 
 int main(int argc, char *argv[]) {
-	char *buffer = 0;
-	size_t file_size = 0;
-	if (argc > 1) {
-		int file_descriptor = open(argv[1], O_RDONLY);
-		assert(file_descriptor != -1);
-
-		struct stat file_stat;
-		assert(stat(argv[1], &file_stat) != -1);
-		file_size = file_stat.st_size;
-
-		buffer = malloc(file_size);
-		assert(buffer);
-		assert(read(file_descriptor, buffer, file_size) != -1);
-
-		assert(close(file_descriptor) != -1);
-	}
-
 	initscr();
 	cbreak();
 	noecho();
@@ -32,22 +15,35 @@ int main(int argc, char *argv[]) {
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
+	struct page *page = new_page();
+	struct point cursor = {page, 0};
+
+	if (argc > 1) {
+		FILE *f = fopen(argv[1], "r");
+		char c;
+		while ((c = fgetc(f)) != EOF) {
+			insert_at_point(&cursor, c);
+		}
+		fclose(f);
+	}
+
 	int window_height = getmaxy(stdscr);
 	int current_line = 0;
 	int old_line = -1;
 
 	int number_of_lines = 0;
-	for (int i = 0; i < file_size; i++) {
-		if (buffer[i] == '\n') number_of_lines++;
+	for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
+		if (get_element(&i) == '\n') number_of_lines++;
 	}
 
 	while (1) {
 		if (old_line != current_line) {
 			clear();
 
-			for (int i = 0, iter_line = 0; i < file_size && iter_line < window_height + current_line; i++) {
-				if (iter_line >= current_line) addch(buffer[i]);
-				if (buffer[i] == '\n') iter_line++;
+			int iter_line = 0;
+			for (struct point i = {page, 0}; !at_eof(&i) && iter_line < window_height + current_line; move_point_forward(&i)) {
+				if (iter_line >= current_line) addch(get_element(&i));
+				if (get_element(&i) == '\n') iter_line++;
 			}
 		}
 

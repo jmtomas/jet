@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -24,6 +25,10 @@ uint16_t index_to_offset(struct page *page, uint16_t index) {
 	} else {
 		return index + (page->gap_end - page->gap_start);
 	}
+}
+
+bool at_eof(struct point *point) {
+	return point->index == point->current_page->element_count;
 }
 
 void move_point_forward(struct point *point) {
