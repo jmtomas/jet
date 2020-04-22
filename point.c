@@ -15,7 +15,7 @@ uint16_t index_to_offset(struct point *point) {
 }
 
 uint8_t element(struct point *point) {
-	return point->page->buffer[index_to_offset(point)];
+	return point->page->elements[index_to_offset(point)];
 }
 
 bool at_eof(struct point *point) {
@@ -60,7 +60,7 @@ void insert_at_point(struct point *point, uint8_t c) {
 		}
 	}
 	align_gap(point);
-	point->page->buffer[point->page->gap_start] = c;
+	point->page->elements[point->page->gap_start] = c;
 	point->page->gap_start++;
 	point->page->element_count++;
 	move_point_forward(point);

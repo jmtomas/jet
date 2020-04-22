@@ -5,17 +5,17 @@
 #define PAGE_SIZE 4096
 
 struct page {
-	uint8_t *buffer;
+	uint8_t *elements;
+	struct page *next;
+	struct page *prev;
 	uint16_t gap_start;
 	uint16_t gap_end;
 	uint16_t element_count;
-	struct page *next;
-	struct page *prev;
 };
 
 struct page *new_page() {
 	struct page *result = malloc(sizeof(struct page));
-	result->buffer = malloc(PAGE_SIZE);
+	result->elements = malloc(PAGE_SIZE);
 	result->gap_start = 0;
 	result->gap_end = PAGE_SIZE;
 	result->next = 0;
@@ -26,7 +26,7 @@ struct page *new_page() {
 void split_page(struct page *back) {
 	struct page *front = new_page();
 
-	memcpy(front->buffer, back->buffer + PAGE_SIZE / 2, PAGE_SIZE / 2);
+	memcpy(front->elements, back->elements + PAGE_SIZE / 2, PAGE_SIZE / 2);
 
 	front->gap_start = PAGE_SIZE / 2;
 	front->gap_end = PAGE_SIZE;
@@ -55,7 +55,7 @@ void free_page(struct page *page) {
 }
 
 void move_gap_forward(struct page *page) {
-	page->buffer[page->gap_start] = page->buffer[page->gap_end];
+	page->elements[page->gap_start] = page->elements[page->gap_end];
 	page->gap_start++;
 	page->gap_end++;
 }
@@ -63,5 +63,5 @@ void move_gap_forward(struct page *page) {
 void move_gap_backward(struct page *page) {
 	page->gap_end--;
 	page->gap_start--;
-	page->buffer[page->gap_end] = page->buffer[page->gap_start];
+	page->elements[page->gap_end] = page->elements[page->gap_start];
 }
