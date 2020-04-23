@@ -2,7 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifndef PAGE_SIZE
 #define PAGE_SIZE 4096
+#endif
 
 struct page {
 	uint8_t *elements;
