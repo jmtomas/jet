@@ -57,25 +57,31 @@ void free_page(struct page *page) {
 }
 
 void move_gap_forward(struct page *page) {
-	page->elements[page->gap_start] = page->elements[page->gap_end];
-	page->gap_start++;
-	page->gap_end++;
+	if (page->gap_end < PAGE_SIZE) {
+		page->elements[page->gap_start] = page->elements[page->gap_end];
+		page->gap_start++;
+		page->gap_end++;
+	}
 }
 
 void move_gap_backward(struct page *page) {
-	page->gap_end--;
-	page->gap_start--;
-	page->elements[page->gap_end] = page->elements[page->gap_start];
+	if (page->gap_start > 0) {
+		page->gap_end--;
+		page->gap_start--;
+		page->elements[page->gap_end] = page->elements[page->gap_start];
+	}
 }
 
 void insert_at_gap(struct page *page, uint8_t c) {
-	page->elements[page->gap_start] = c;
-	page->gap_start++;
-	page->element_count++;
+	if (page->element_count < PAGE_SIZE) {
+		page->elements[page->gap_start] = c;
+		page->gap_start++;
+		page->element_count++;
+	}
 }
 
 void delete_at_gap(struct page *page) {
-	if (page->gap_start) {
+	if (page->gap_start > 0) {
 		page->gap_start--;
 		page->element_count--;
 	}
