@@ -25,20 +25,20 @@ bool at_eof(struct point *point) {
 void move_point_forward(struct point *point) {
 	if (point->index < point->page->element_count) {
 		point->index++;
-	}
-	if (point->index == point->page->element_count && point->page->next) {
-		point->index = 0;
+	} else if (point->page->next) {
+		point->index = 1;
 		point->page = point->page->next;
 	}
 }
 
 void move_point_backward(struct point *point) {
-	if (point->index == 0 && point->page->prev) {
+	if (point->index > 1) {
+		point->index--;
+	} else if (point->page->prev) {
 		point->index = point->page->prev->element_count;
 		point->page = point->page->prev;
-	}
-	if (point->index > 0) {
-		point->index--;
+	} else {
+		point->index = 0;
 	}
 }
 

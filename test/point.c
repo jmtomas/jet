@@ -21,7 +21,11 @@ int main() {
 
 		struct page *iter = page;
 		while (iter) {
-			addch('|');
+			if (iter == point.page) {
+				addch('#');
+			} else {
+				addch('|');
+			}
 			for (int i = 0; i < iter->gap_start; i++) {
 				addch(iter->elements[i]);
 			}

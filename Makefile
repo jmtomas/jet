@@ -6,5 +6,5 @@ jet: Makefile *.c
 page: Makefile page.c test/page.c
 	gcc $(FLAGS) test/page.c -o page
 
-point: Makefile point.c test/point.c
+point: Makefile page.c point.c test/point.c
 	gcc $(FLAGS) test/point.c -o point
