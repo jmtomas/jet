@@ -35,8 +35,8 @@ void move_point_backward(struct point *point) {
 	if (point->index > 1) {
 		point->index--;
 	} else if (point->page->prev) {
-		point->index = point->page->prev->element_count;
 		point->page = point->page->prev;
+		point->index = point->page->element_count;
 	} else {
 		point->index = 0;
 	}
@@ -65,15 +65,14 @@ void insert_at_point(struct point *point, uint8_t c) {
 }
 
 void delete_at_point(struct point *point) {
-	if (point->page->element_count == 1) {
+	if (point->page->element_count == 1 && point->index == 1) {
 		if (point->page->prev) {
-			point->page = point->page->prev;
-			point->index = point->page->element_count;
+			move_point_backward(point);
 			free_page(point->page->next);
 		} else if (point->page->next) {
-			point->page = point->page->next;
+			copy_page(point->page, point->page->next);
+			free_page(point->page->next);
 			point->index = 0;
-			free_page(point->page->prev);
 		} else {
 			align_gap(point);
 			delete_at_gap(point->page);

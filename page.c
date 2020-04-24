@@ -46,6 +46,13 @@ void split_page(struct page *back) {
 	back->next = front;
 }
 
+void copy_page(struct page *dest, struct page *src) {
+	memcpy(dest->elements, src->elements, PAGE_SIZE);
+	dest->gap_start = src->gap_start;
+	dest->gap_end = src->gap_end;
+	dest->element_count = src->element_count;
+}
+
 void free_page(struct page *page) {
 	if (page->prev) {
 		page->prev->next = page->next;
@@ -53,6 +60,7 @@ void free_page(struct page *page) {
 	if (page->next) {
 		page->next->prev = page->prev;
 	}
+	free(page->elements);
 	free(page);
 }
 
