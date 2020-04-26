@@ -15,11 +15,15 @@ uint16_t index_to_offset(struct point *point) {
 }
 
 uint8_t element(struct point *point) {
-	return point->page->elements[index_to_offset(point)];
+	if (point->index == point->page->element_count) {
+		return point->page->next->elements[0];
+	} else {
+		return point->page->elements[index_to_offset(point)];
+	}
 }
 
 bool at_eof(struct point *point) {
-	return point->index == point->page->element_count;
+	return point->index == point->page->element_count && !point->page->next;
 }
 
 void move_point_forward(struct point *point) {
