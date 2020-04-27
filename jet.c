@@ -33,22 +33,17 @@ int main(int argc, char *argv[]) {
 	int window_height = getmaxy(stdscr);
 	int current_line = 0;
 
-	int number_of_lines = 0;
-	for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
-		if (element(&i) == '\n') number_of_lines++;
-	}
-
 	while (1) {
 		clear();
 
+		int number_of_lines = 0;
 		int x = -1, y = -1;
-		int iter_line = 0;
-		for (struct point i = {page, 0}; !at_eof(&i) && iter_line < window_height + current_line; move_point_forward(&i)) {
+		for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
+			if (element(&i) == '\n') number_of_lines++;
 			if (same_location(&i, &cursor)) {
 				getyx(stdscr, y, x);
 			}
-			if (iter_line >= current_line) addch(element(&i));
-			if (element(&i) == '\n') iter_line++;
+			if (number_of_lines >= current_line && number_of_lines < window_height + current_line) addch(element(&i));
 		}
 		if (x > -1 && y > -1) {
 			move(y, x);
