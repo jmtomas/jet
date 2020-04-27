@@ -12,7 +12,6 @@ int main(int argc, char *argv[]) {
 	initscr();
 	cbreak();
 	noecho();
-	nonl();
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
