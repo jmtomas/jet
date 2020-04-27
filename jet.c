@@ -25,12 +25,13 @@ int main(int argc, char *argv[]) {
 		while ((c = fgetc(f)) != EOF) {
 			insert_at_point(&cursor, c);
 		}
+		cursor.page = page;
+		cursor.index = 0;
 		fclose(f);
 	}
 
 	int window_height = getmaxy(stdscr);
 	int current_line = 0;
-	int old_line = -1;
 
 	int number_of_lines = 0;
 	for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
@@ -38,17 +39,21 @@ int main(int argc, char *argv[]) {
 	}
 
 	while (1) {
-		if (old_line != current_line) {
-			clear();
+		clear();
 
-			int iter_line = 0;
-			for (struct point i = {page, 0}; !at_eof(&i) && iter_line < window_height + current_line; move_point_forward(&i)) {
-				if (iter_line >= current_line) addch(element(&i));
-				if (element(&i) == '\n') iter_line++;
+		int x = -1, y = -1;
+		int iter_line = 0;
+		for (struct point i = {page, 0}; !at_eof(&i) && iter_line < window_height + current_line; move_point_forward(&i)) {
+			if (same_location(&i, &cursor)) {
+				getyx(stdscr, y, x);
 			}
+			if (iter_line >= current_line) addch(element(&i));
+			if (element(&i) == '\n') iter_line++;
+		}
+		if (x > -1 && y > -1) {
+			move(y, x);
 		}
 
-		old_line = current_line;
 		int input = getch();
 
 		switch (input) {
@@ -57,6 +62,18 @@ int main(int argc, char *argv[]) {
 				break;
 			case KEY_DOWN:
 				if (current_line < number_of_lines - window_height) current_line++;
+				break;
+			case KEY_LEFT:
+				move_point_backward(&cursor);
+				break;
+			case KEY_RIGHT:
+				move_point_forward(&cursor);
+				break;
+			case KEY_BACKSPACE:
+				delete_at_point(&cursor);
+				break;
+			default:
+				insert_at_point(&cursor, input);
 		}
 	}
 

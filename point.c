@@ -22,6 +22,10 @@ uint8_t element(struct point *point) {
 	}
 }
 
+bool same_location(struct point *a, struct point *b) {
+	return a->page == b->page && a->index == b->index;
+}
+
 bool at_eof(struct point *point) {
 	return point->index == point->page->element_count && !point->page->next;
 }
