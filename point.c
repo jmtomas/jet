@@ -82,7 +82,7 @@ void delete_at_point(struct point *point) {
 			delete_at_gap(point->page);
 			move_point_backward(point);
 		}
-	} else {
+	} else if (point->index > 0) {
 		align_gap(point);
 		delete_at_gap(point->page);
 		move_point_backward(point);
