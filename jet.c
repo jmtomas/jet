@@ -38,11 +38,11 @@ int main(int argc, char *argv[]) {
 		int number_of_lines = 0;
 		int x = -1, y = -1;
 		for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
-			if (element(&i) == '\n') number_of_lines++;
 			if (same_location(&i, &cursor)) {
 				getyx(stdscr, y, x);
 			}
 			if (number_of_lines >= current_line && number_of_lines < window_height + current_line) addch(element(&i));
+			if (element(&i) == '\n') number_of_lines++;
 		}
 		if (x > -1 && y > -1) {
 			move(y, x);
