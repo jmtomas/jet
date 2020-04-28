@@ -14,20 +14,20 @@ uint16_t index_to_offset(struct point *point) {
 	}
 }
 
-uint8_t element(struct point *point) {
-	if (point->index == point->page->element_count) {
-		return point->page->next->elements[0];
-	} else {
-		return point->page->elements[index_to_offset(point)];
-	}
-}
-
-bool same_location(struct point *a, struct point *b) {
+bool same_point(struct point *a, struct point *b) {
 	return a->page == b->page && a->index == b->index;
 }
 
-bool at_eof(struct point *point) {
-	return point->index == point->page->element_count && !point->page->next;
+uint8_t element(struct point *point) {
+	if (point->index == point->page->element_count) {
+		if (!point->page->next) {
+			return EOF;
+		} else {
+			return point->page->next->elements[0];
+		}
+	} else {
+		return point->page->elements[index_to_offset(point)];
+	}
 }
 
 void move_point_forward(struct point *point) {

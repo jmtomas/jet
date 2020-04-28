@@ -8,6 +8,26 @@
 #include "page.c"
 #include "point.c"
 
+void scroll_window_up(struct point *start, int window_width) {
+	int travel_distance = 0;
+	move_point_backward(start);
+	move_point_backward(start);
+	while (start->index != 0 && element(start) != '\n' && travel_distance < window_width) {
+		move_point_backward(start);
+		travel_distance++;
+	}
+	if (element(start) == '\n') move_point_forward(start);
+}
+
+void scroll_window_down(struct point *start, int window_width) {
+	int travel_distance = 0;
+	while (element(start) != EOF && element(start) != '\n' && travel_distance < window_width) {
+		move_point_forward(start);
+		travel_distance++;
+	}
+	if (element(start) == '\n') move_point_forward(start);
+}
+
 int main(int argc, char *argv[]) {
 	initscr();
 	cbreak();
@@ -16,7 +36,8 @@ int main(int argc, char *argv[]) {
 	keypad(stdscr, TRUE);
 
 	struct page *page = new_page();
-	struct point cursor = {page, 0};
+	struct point current_line = {page, 0};
+	struct point cursor = current_line;
 
 	if (argc > 1) {
 		FILE *f = fopen(argv[1], "r");
@@ -24,25 +45,22 @@ int main(int argc, char *argv[]) {
 		while ((c = fgetc(f)) != EOF) {
 			insert_at_point(&cursor, c);
 		}
-		cursor.page = page;
-		cursor.index = 0;
+		cursor = current_line;
 		fclose(f);
 	}
 
-	int window_height = getmaxy(stdscr);
-	int current_line = 0;
+	int window_height, window_width;
+	getmaxyx(stdscr, window_height, window_width);
 
 	while (1) {
 		clear();
 
-		int number_of_lines = 0;
 		int x = -1, y = -1;
-		for (struct point i = {page, 0}; !at_eof(&i); move_point_forward(&i)) {
-			if (same_location(&i, &cursor)) {
+		for (struct point i = current_line; element(&i) != EOF && getcury(stdscr) < window_height - 1; move_point_forward(&i)) {
+			if (same_point(&i, &cursor)) {
 				getyx(stdscr, y, x);
 			}
-			if (number_of_lines >= current_line && number_of_lines < window_height + current_line) addch(element(&i));
-			if (element(&i) == '\n') number_of_lines++;
+			addch(element(&i));
 		}
 		if (x > -1 && y > -1) {
 			move(y, x);
@@ -52,10 +70,10 @@ int main(int argc, char *argv[]) {
 
 		switch (input) {
 			case KEY_UP:
-				if (current_line > 0) current_line--;
+				scroll_window_up(&current_line, window_width);
 				break;
 			case KEY_DOWN:
-				if (current_line < number_of_lines - window_height) current_line++;
+				scroll_window_down(&current_line, window_width);
 				break;
 			case KEY_LEFT:
 				move_point_backward(&cursor);
