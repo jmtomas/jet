@@ -62,9 +62,15 @@ int main(int argc, char *argv[]) {
 				next_line(&cursor, window_width);
 				break;
 			case KEY_LEFT:
+				if (same_point(&cursor, &window_start)) {
+					prev_line(&window_start, window_width);
+				}
 				move_point_backward(&cursor);
 				break;
 			case KEY_RIGHT:
+				if (same_point(&cursor, &window_end)) {
+					next_line(&window_start, window_width);
+				}
 				move_point_forward(&cursor);
 				break;
 			case KEY_BACKSPACE:
