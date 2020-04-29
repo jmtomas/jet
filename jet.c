@@ -74,9 +74,15 @@ int main(int argc, char *argv[]) {
 				move_point_forward(&cursor);
 				break;
 			case KEY_BACKSPACE:
+				if (same_point(&cursor, &window_start)) {
+					prev_line(&window_start, window_width);
+				}
 				delete_at_point(&cursor);
 				break;
 			default:
+				if (same_point(&cursor, &window_end)) {
+					next_line(&window_start, window_width);
+				}
 				insert_at_point(&cursor, input);
 		}
 	}
