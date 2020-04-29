@@ -67,7 +67,7 @@ uint64_t rseek(struct point *point, uint8_t c, int limit) {
 void prev_line(struct point *point, int window_width) {
 	move_point_backward(point);
 	move_point_backward(point);
-	rseek(point, '\n', window_width);
+	rseek(point, '\n', window_width - 2);
 	if (element(point) == '\n') {
 		move_point_forward(point);
 	}
