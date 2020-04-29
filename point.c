@@ -20,11 +20,7 @@ bool same_point(struct point *a, struct point *b) {
 
 uint8_t element(struct point *point) {
 	if (point->index == point->page->element_count) {
-		if (!point->page->next) {
-			return EOF;
-		} else {
-			return point->page->next->elements[0];
-		}
+		return !point->page->next ? 0 : point->page->next->elements[0];
 	} else {
 		return point->page->elements[index_to_offset(point)];
 	}
@@ -47,6 +43,40 @@ void move_point_backward(struct point *point) {
 		point->index = point->page->element_count;
 	} else {
 		point->index = 0;
+	}
+}
+
+uint64_t seek(struct point *point, uint8_t c, int limit) {
+	uint64_t travel_distance = 0;
+	while (element(point) && element(point) != c && travel_distance < limit) {
+		move_point_forward(point);
+		travel_distance++;
+	}
+	return travel_distance;
+}
+
+uint64_t rseek(struct point *point, uint8_t c, int limit) {
+	uint64_t travel_distance = 0;
+	while (point->index != 0 && element(point) != c && travel_distance < limit) {
+		move_point_backward(point);
+		travel_distance++;
+	}
+	return travel_distance;
+}
+
+void prev_line(struct point *point, int window_width) {
+	move_point_backward(point);
+	move_point_backward(point);
+	rseek(point, '\n', window_width);
+	if (element(point) == '\n') {
+		move_point_forward(point);
+	}
+}
+
+void next_line(struct point *point, int window_width) {
+	seek(point, '\n', window_width);
+	if (element(point) == '\n') {
+		move_point_forward(point);
 	}
 }
 

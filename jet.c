@@ -8,26 +8,6 @@
 #include "page.c"
 #include "point.c"
 
-void scroll_window_up(struct point *start, int window_width) {
-	int travel_distance = 0;
-	move_point_backward(start);
-	move_point_backward(start);
-	while (start->index != 0 && element(start) != '\n' && travel_distance < window_width) {
-		move_point_backward(start);
-		travel_distance++;
-	}
-	if (element(start) == '\n') move_point_forward(start);
-}
-
-void scroll_window_down(struct point *start, int window_width) {
-	int travel_distance = 0;
-	while (element(start) != EOF && element(start) != '\n' && travel_distance < window_width) {
-		move_point_forward(start);
-		travel_distance++;
-	}
-	if (element(start) == '\n') move_point_forward(start);
-}
-
 int main(int argc, char *argv[]) {
 	initscr();
 	cbreak();
@@ -35,9 +15,9 @@ int main(int argc, char *argv[]) {
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
-	struct page *page = new_page();
-	struct point current_line = {page, 0};
-	struct point cursor = current_line;
+	struct point buffer_start = {new_page()};
+	struct point window_start = buffer_start;
+	struct point cursor = window_start;
 
 	if (argc > 1) {
 		FILE *f = fopen(argv[1], "r");
@@ -45,7 +25,7 @@ int main(int argc, char *argv[]) {
 		while ((c = fgetc(f)) != EOF) {
 			insert_at_point(&cursor, c);
 		}
-		cursor = current_line;
+		cursor = window_start;
 		fclose(f);
 	}
 
@@ -56,11 +36,13 @@ int main(int argc, char *argv[]) {
 		clear();
 
 		int x = -1, y = -1;
-		for (struct point i = current_line; element(&i) != EOF && getcury(stdscr) < window_height - 1; move_point_forward(&i)) {
-			if (same_point(&i, &cursor)) {
+		struct point window_end = window_start;
+		while (element(&window_end) && getcury(stdscr) < window_height - 1) {
+			if (same_point(&window_end, &cursor)) {
 				getyx(stdscr, y, x);
 			}
-			addch(element(&i));
+			addch(element(&window_end));
+			move_point_forward(&window_end);
 		}
 		if (x > -1 && y > -1) {
 			move(y, x);
@@ -70,10 +52,14 @@ int main(int argc, char *argv[]) {
 
 		switch (input) {
 			case KEY_UP:
-				scroll_window_up(&current_line, window_width);
+				prev_line(&window_start, window_width);
+				prev_line(&cursor, window_width);
 				break;
 			case KEY_DOWN:
-				scroll_window_down(&current_line, window_width);
+				if (element(&window_end)) {
+					next_line(&window_start, window_width);
+				}
+				next_line(&cursor, window_width);
 				break;
 			case KEY_LEFT:
 				move_point_backward(&cursor);
