@@ -61,32 +61,22 @@ int main(int argc, char *argv[]) {
 					mode = INSERT_MODE;
 					break;
 				case 'k':
-					prev_line(&window_start, window_width);
 					prev_line(&cursor, window_width);
+					if (y <= 0) {
+						prev_line(&window_start, window_width);
+					}
 					break;
 				case 'j':
-					if (element(&window_end)) {
-						next_line(&window_start, window_width);
-					}
 					next_line(&cursor, window_width);
-					if (same_point(&cursor, &window_end)) {
-						move_point_backward(&cursor);
+					if (y >= window_height - 2) {
+						next_line(&window_start, window_width);
 					}
 					break;
 				case 'h':
-					if (same_point(&cursor, &window_start)) {
-						prev_line(&window_start, window_width);
-					}
 					move_point_backward(&cursor);
 					break;
 				case 'l':
-					if (same_point(&cursor, &window_end)) {
-						next_line(&window_start, window_width);
-					}
 					move_point_forward(&cursor);
-					if (same_point(&cursor, &window_end)) {
-						move_point_backward(&cursor);
-					}
 					break;
 			}
 		} else {
@@ -95,22 +85,14 @@ int main(int argc, char *argv[]) {
 					mode = NORMAL_MODE;
 					break;
 				case KEY_BACKSPACE:
-					if (same_point(&cursor, &window_start)) {
-						prev_line(&window_start, window_width);
-					}
 					delete_at_point(&cursor);
 					break;
 				default:
-					if (same_point(&cursor, &window_end)) {
-						next_line(&window_start, window_width);
-					}
 					insert_at_point(&cursor, input);
-					move_point_backward(&cursor);
-					if (element(&cursor) == '\n') {
-						next_line(&window_start, window_width);
-					}
-					move_point_forward(&cursor);
 			}
+		}
+		if (element(&cursor) == 0) {
+			move_point_backward(&cursor);
 		}
 	}
 
