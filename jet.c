@@ -37,7 +37,8 @@ int main(int argc, char *argv[]) {
 
 	int mode = NORMAL_MODE;
 
-	while (1) {
+	int quit = 0;
+	while (!quit) {
 		clear();
 
 		int x = -1, y = -1;
@@ -57,6 +58,9 @@ int main(int argc, char *argv[]) {
 
 		if (mode == NORMAL_MODE) {
 			switch (input) {
+				case '':
+					quit = 1;
+					break;
 				case 'i':
 					mode = INSERT_MODE;
 					break;
