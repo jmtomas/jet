@@ -10,11 +10,21 @@ int main() {
 	struct point point = {page, 0};
 
 	initscr();
+	start_color();
 	cbreak();
 	noecho();
 	nonl();
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
+
+#define black 20
+#define red 21
+#define green 22
+	init_color(black, 0, 0, 0);
+	init_color(red, 1000, 0, 0);
+	init_color(green, 0, 1000, 0);
+	init_pair(1, red, black);
+	init_pair(2, green, black);
 
 	while (!exit) {
 		clear();
@@ -22,9 +32,9 @@ int main() {
 		struct page *iter = page;
 		while (iter) {
 			if (iter == point.page) {
-				addch('#');
+				attron(COLOR_PAIR(1));
 			} else {
-				addch('|');
+				attron(COLOR_PAIR(2));
 			}
 			for (int i = 0; i < iter->gap_start; i++) {
 				addch(iter->elements[i]);
@@ -36,10 +46,15 @@ int main() {
 				addch(iter->elements[i]);
 			}
 			iter = iter->next;
+			attroff(COLOR_PAIR(1));
+			attroff(COLOR_PAIR(2));
 		}
 
 		int input = getch();
 		switch (input) {
+			case '':
+				exit = 1;
+				break;
 			case KEY_LEFT:
 				move_point_backward(&point);
 				align_gap(&point);
