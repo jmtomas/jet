@@ -11,6 +11,20 @@
 #define NORMAL_MODE 0
 #define INSERT_MODE 1
 
+struct buffer {
+	char *name;
+	struct point start;
+	struct point cursor;
+};
+
+struct buffer *new_buffer(char *name) {
+	struct buffer *result = calloc(1, sizeof(struct buffer));
+	result->name = name;
+	result->start.page = new_page();
+	result->cursor = result->start;
+	return result;
+}
+
 int main(int argc, char *argv[]) {
 	initscr();
 	cbreak();
@@ -18,17 +32,16 @@ int main(int argc, char *argv[]) {
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
-	struct point buffer_start = {new_page()};
-	struct point window_start = buffer_start;
-	struct point cursor = window_start;
+	struct buffer *buffer = new_buffer("test");
+	struct point window_start = buffer->start;
 
 	if (argc > 1) {
 		FILE *f = fopen(argv[1], "r");
 		char c;
 		while ((c = fgetc(f)) != EOF) {
-			insert_at_point(&cursor, c);
+			insert_at_point(&buffer->cursor, c);
 		}
-		cursor = window_start;
+		buffer->cursor = buffer->start;
 		fclose(f);
 	}
 
@@ -44,7 +57,7 @@ int main(int argc, char *argv[]) {
 		int x = -1, y = -1;
 		struct point window_end = window_start;
 		while (element(&window_end) && getcury(stdscr) < window_height - 1) {
-			if (same_point(&window_end, &cursor)) {
+			if (same_point(&window_end, &buffer->cursor)) {
 				getyx(stdscr, y, x);
 			}
 			addch(element(&window_end));
@@ -65,22 +78,22 @@ int main(int argc, char *argv[]) {
 					mode = INSERT_MODE;
 					break;
 				case 'k':
-					prev_line(&cursor, window_width);
+					prev_line(&buffer->cursor, window_width);
 					if (y <= 0) {
 						prev_line(&window_start, window_width);
 					}
 					break;
 				case 'j':
-					next_line(&cursor, window_width);
+					next_line(&buffer->cursor, window_width);
 					if (y >= window_height - 2) {
 						next_line(&window_start, window_width);
 					}
 					break;
 				case 'h':
-					move_point_backward(&cursor);
+					move_point_backward(&buffer->cursor);
 					break;
 				case 'l':
-					move_point_forward(&cursor);
+					move_point_forward(&buffer->cursor);
 					break;
 			}
 		} else {
@@ -89,14 +102,14 @@ int main(int argc, char *argv[]) {
 					mode = NORMAL_MODE;
 					break;
 				case KEY_BACKSPACE:
-					delete_at_point(&cursor);
+					delete_at_point(&buffer->cursor);
 					break;
 				default:
-					insert_at_point(&cursor, input);
+					insert_at_point(&buffer->cursor, input);
 			}
 		}
-		if (element(&cursor) == 0) {
-			move_point_backward(&cursor);
+		if (element(&buffer->cursor) == 0) {
+			move_point_backward(&buffer->cursor);
 		}
 	}
 
