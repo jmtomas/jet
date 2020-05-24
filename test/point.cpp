@@ -1,13 +1,13 @@
 #include <curses.h>
 
 #define PAGE_SIZE 16
-#include "../page.c"
-#include "../point.c"
+#include "../page.cpp"
+#include "../point.cpp"
 
 int main() {
 	int exit = 0;
-	struct page *page = new_page();
-	struct point point = {page, 0};
+	Page *page = new Page();
+	Point point = Point(page);
 
 	initscr();
 	start_color();
@@ -29,9 +29,9 @@ int main() {
 	while (!exit) {
 		clear();
 
-		struct page *iter = page;
+		Page *iter = page;
 		while (iter) {
-			if (iter == point.page) {
+			if (iter == point.page && iter->gap_end == point.index_to_offset()) {
 				attron(COLOR_PAIR(1));
 			} else {
 				attron(COLOR_PAIR(2));
@@ -56,18 +56,18 @@ int main() {
 				exit = 1;
 				break;
 			case KEY_LEFT:
-				move_point_backward(&point);
-				align_gap(&point);
+				point--;
+				point.align_gap();
 				break;
 			case KEY_RIGHT:
-				move_point_forward(&point);
-				align_gap(&point);
+				point++;
+				point.align_gap();
 				break;
 			case KEY_BACKSPACE:
-				delete_at_point(&point);
+				point.pop();
 				break;
 			default:
-				insert_at_point(&point, input);
+				point.push(input);
 		}
 	}
 

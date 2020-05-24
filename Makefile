@@ -1,10 +1,10 @@
 FLAGS=-ggdb -O0 -fno-builtin -Wall -lcurses
 
-jet: Makefile *.c
-	gcc $(FLAGS) jet.c -o jet
+jet: Makefile *.cpp
+	g++ $(FLAGS) jet.cpp -o jet
 
-page: Makefile page.c test/page.c
-	gcc $(FLAGS) test/page.c -o page
+page: Makefile page.cpp test/page.cpp
+	g++ $(FLAGS) test/page.cpp -o page
 
-point: Makefile page.c point.c test/point.c
-	gcc $(FLAGS) test/point.c -o point
+point: Makefile page.cpp point.cpp test/point.cpp
+	g++ $(FLAGS) test/point.cpp -o point

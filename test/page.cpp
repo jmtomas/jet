@@ -1,11 +1,11 @@
 #include <curses.h>
 
 #define PAGE_SIZE 32
-#include "../page.c"
+#include "../page.cpp"
 
 int main() {
 	int exit = 0;
-	struct page *page = new_page();
+	Page page = Page();
 
 	initscr();
 	cbreak();
@@ -17,29 +17,29 @@ int main() {
 	while (!exit) {
 		clear();
 
-		for (int i = 0; i < page->gap_start; i++) {
-			addch(page->elements[i]);
+		for (int i = 0; i < page.gap_start; i++) {
+			addch(page.elements[i]);
 		}
-		for (int i = page->gap_start; i < page->gap_end; i++) {
+		for (int i = page.gap_start; i < page.gap_end; i++) {
 			addch('.');
 		}
-		for (int i = page->gap_end; i < PAGE_SIZE; i++) {
-			addch(page->elements[i]);
+		for (int i = page.gap_end; i < PAGE_SIZE; i++) {
+			addch(page.elements[i]);
 		}
 
 		int input = getch();
 		switch (input) {
 			case KEY_LEFT:
-				move_gap_backward(page);
+				page--;
 				break;
 			case KEY_RIGHT:
-				move_gap_forward(page);
+				page++;
 				break;
 			case KEY_BACKSPACE:
-				delete_at_gap(page);
+				page.pop();
 				break;
 			default:
-				insert_at_gap(page, input);
+				page.push(input);
 		}
 	}
 
