@@ -15,26 +15,32 @@ class Point {
 	}
 
 	uint8_t byte() {
-		return index == page->element_count ? (page->next ? page->next->elements[0] : 0) : page->elements[index_to_offset()];
+		if (index == page->element_count) {
+			if (page->next) {
+				return page->next->elements[Point(page->next, 0).index_to_offset()];
+			} else {
+				return 0;
+			}
+		} else {
+			return page->elements[index_to_offset()];
+		}
 	}
 
-	void next_byte() {
+	void move_forward() {
 		if (index < page->element_count) {
 			index++;
 		} else if (page->next) {
 			page = page->next;
-			index = 1;
+			index = 0;
 		}
 	}
 
-	void prev_byte() {
-		if (index > 1) {
+	void move_backward() {
+		if (index > 0) {
 			index--;
 		} else if (page->prev) {
 			page = page->prev;
 			index = page->element_count;
-		} else {
-			index = 0;
 		}
 	}
 
@@ -61,6 +67,7 @@ class Point {
 	public:
 
 	Point() : page(new Page()), index(0) {}
+	Point(Page *page, uint16_t index) : page(page), index(index) {}
 	Point(const Point& p) : page(p.page), index(p.index) {}
 
 	bool operator==(Point p) {
@@ -72,7 +79,7 @@ class Point {
 	}
 
 	bool at_start() {
-		return index == 0;
+		return index == 0 && !page->prev;
 	}
 
 	bool at_end() {
@@ -81,13 +88,15 @@ class Point {
 
 	void operator++(int) {
 		do {
-			next_byte();
+			if (index == page->element_count) move_forward();
+			move_forward();
 		} while (!rune_type());
 	}
 
 	void operator--(int) {
 		do {
-			prev_byte();
+			move_backward();
+			if (index == 0) move_backward();
 		} while (!rune_type());
 	}
 
@@ -97,7 +106,7 @@ class Point {
 		Point iter(*this);
 		for (size_t i = 1; i < type; i++) {
 			rune <<= 6;
-			iter.next_byte();
+			iter.move_forward();
 			rune |= (iter.byte() & 0x3f);
 		}
 		return rune;
@@ -106,7 +115,7 @@ class Point {
 	uint64_t seek(uint8_t c, uint64_t limit) {
 		uint64_t travel_distance = 0;
 		while (!at_end() && byte() != c && travel_distance < limit) {
-			next_byte();
+			move_forward();
 			travel_distance++;
 		}
 		return travel_distance;
@@ -115,7 +124,7 @@ class Point {
 	uint64_t rseek(uint8_t c, uint64_t limit) {
 		uint64_t travel_distance = 0;
 		while (!at_start() && byte() != c && travel_distance < limit) {
-			prev_byte();
+			move_backward();
 			travel_distance++;
 		}
 		return travel_distance;
@@ -140,26 +149,27 @@ class Point {
 		}
 		align_gap();
 		page->push(c);
-		next_byte();
+		move_forward();
 	}
 
 	void pop() {
-		if (page->element_count == 1 && index == 1) {
+		if (!at_start()) {
+			align_gap();
+			page->pop();
+			move_backward();
+			if (index == 0) {
+				move_backward();
+			}
+		}
+		if (page->is_empty()) {
 			if (page->prev) {
-				prev_byte();
+				move_backward();
 				delete page->next;
 			} else if (page->next) {
 				page->next->copy_to(page);
 				delete page->next;
 				index = 0;
-			} else {
-				page->pop();
-				prev_byte();
 			}
-		} else if (index > 0) {
-			align_gap();
-			page->pop();
-			prev_byte();
 		}
 	}
 
