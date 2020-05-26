@@ -58,14 +58,14 @@ struct Page {
 		dest->element_count = element_count;
 	}
 
-	void operator++(int) {
+	void move_gap_forward() {
 		assert(gap_end < PAGE_SIZE);
 		elements[gap_start] = elements[gap_end];
 		gap_start++;
 		gap_end++;
 	}
 
-	void operator--(int) {
+	void move_gap_backward() {
 		assert(gap_start > 0);
 		gap_end--;
 		gap_start--;
@@ -83,6 +83,14 @@ struct Page {
 		assert(gap_start > 0);
 		gap_start--;
 		element_count--;
+	}
+
+	bool is_empty() {
+		return element_count == 0;
+	}
+
+	bool is_full() {
+		return gap_start == gap_end;
 	}
 
 };

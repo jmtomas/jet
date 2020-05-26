@@ -1,0 +1,3 @@
+* free page correctly after no points point to it
+* add utf-8 support on push and pop
+* fix pop
