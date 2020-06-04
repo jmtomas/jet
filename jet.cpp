@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
 			printw("%lc", window_end.element());
 			window_end++;
 		}
+		printw("%d", buffer.cursor.index);
 		if (x > -1 && y > -1) {
 			move(y, x);
 		}

@@ -7,11 +7,7 @@ struct Buffer {
 
 	void prev_line(int window_width) {
 		cursor--;
-		cursor--;
-		cursor.rseek('\n', window_width - 2);
-		if (cursor.element() == '\n') {
-			cursor++;
-		}
+		cursor.rseek('\n', window_width - 1);
 	}
 
 	void next_line(int window_width) {

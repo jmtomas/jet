@@ -2,7 +2,27 @@
 #include <assert.h>
 #include <stdbool.h>
 
-class Point {
+size_t byte_type(uint8_t byte) {
+	if (byte & 1 << 7) {
+		if (byte & 1 << 6) {
+			if (byte & 1 << 5) {
+				if (byte & 1 << 4) {
+					return 4;
+				} else {
+					return 3;
+				}
+			} else {
+				return 2;
+			}
+		} else {
+			return 0;
+		}
+	} else {
+		return 1;
+	}
+}
+
+struct Point {
 	Page *page;
 	uint16_t index;
 
@@ -14,7 +34,19 @@ class Point {
 		}
 	}
 
-	uint8_t byte() {
+	uint8_t prev_byte() {
+		if (index == 0) {
+			if (page->prev) {
+				return page->prev->elements[Point(page->prev, page->prev->element_count - 1).index_to_offset()];
+			} else {
+				return 0;
+			}
+		} else {
+			return page->elements[Point(page, index - 1).index_to_offset()];
+		}
+	}
+
+	uint8_t next_byte() {
 		if (index == page->element_count) {
 			if (page->next) {
 				return page->next->elements[Point(page->next, 0).index_to_offset()];
@@ -44,23 +76,24 @@ class Point {
 		}
 	}
 
-	size_t rune_type() {
-		if (byte() & 1 << 7) {
-			if (byte() & 1 << 6) {
-				if (byte() & 1 << 5) {
-					if (byte() & 1 << 4) {
-						return 4;
-					} else {
-						return 3;
-					}
-				} else {
-					return 2;
-				}
-			} else {
-				return 0;
+	void pop_byte() {
+		if (!at_start()) {
+			align_gap();
+			page->pop();
+			move_backward();
+			if (index == 0) {
+				move_backward();
 			}
-		} else {
-			return 1;
+		}
+		if (page->is_empty()) {
+			if (page->prev) {
+				move_backward();
+				delete page->next;
+			} else if (page->next) {
+				page->next->copy_to(page);
+				delete page->next;
+				index = 0;
+			}
 		}
 	}
 
@@ -90,31 +123,31 @@ class Point {
 		do {
 			if (index == page->element_count) move_forward();
 			move_forward();
-		} while (!rune_type());
+		} while (!byte_type(next_byte()));
 	}
 
 	void operator--(int) {
 		do {
 			move_backward();
 			if (index == 0) move_backward();
-		} while (!rune_type());
+		} while (!byte_type(next_byte()));
 	}
 
 	wchar_t element() {
-		size_t type = rune_type();
-		wchar_t rune = byte() & (0xff >> type);
+		size_t type = byte_type(next_byte());
+		wchar_t rune = next_byte() & (0xff >> type);
 		Point iter(*this);
 		for (size_t i = 1; i < type; i++) {
 			rune <<= 6;
 			iter.move_forward();
-			rune |= (iter.byte() & 0x3f);
+			rune |= (iter.next_byte() & 0x3f);
 		}
 		return rune;
 	}
 
 	uint64_t seek(uint8_t c, uint64_t limit) {
 		uint64_t travel_distance = 0;
-		while (!at_end() && byte() != c && travel_distance < limit) {
+		while (!at_end() && next_byte() != c && travel_distance < limit) {
 			move_forward();
 			travel_distance++;
 		}
@@ -123,7 +156,7 @@ class Point {
 
 	uint64_t rseek(uint8_t c, uint64_t limit) {
 		uint64_t travel_distance = 0;
-		while (!at_start() && byte() != c && travel_distance < limit) {
+		while (!at_start() && prev_byte() != c && travel_distance < limit) {
 			move_backward();
 			travel_distance++;
 		}
@@ -153,24 +186,10 @@ class Point {
 	}
 
 	void pop() {
-		if (!at_start()) {
-			align_gap();
-			page->pop();
-			move_backward();
-			if (index == 0) {
-				move_backward();
-			}
+		while (!byte_type(prev_byte())) {
+			pop_byte();
 		}
-		if (page->is_empty()) {
-			if (page->prev) {
-				move_backward();
-				delete page->next;
-			} else if (page->next) {
-				page->next->copy_to(page);
-				delete page->next;
-				index = 0;
-			}
-		}
+		pop_byte();
 	}
 
 };
