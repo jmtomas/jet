@@ -140,6 +140,7 @@ struct Point {
 		for (size_t i = 1; i < type; i++) {
 			rune <<= 6;
 			iter.move_forward();
+			if (iter.index == 0) iter.move_forward();
 			rune |= (iter.next_byte() & 0x3f);
 		}
 		return rune;
