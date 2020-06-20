@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <locale.h>
 #include <curses.h>
-#define PAGE_SIZE 16
+#define PAGE_SIZE 2
 #include "page.cpp"
 #include "point.cpp"
 #include "buffer.cpp"
