@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <locale.h>
 #include <curses.h>
-#define PAGE_SIZE 2
+#define PAGE_SIZE 4096
 #include "page.cpp"
 #include "point.cpp"
 #include "buffer.cpp"
@@ -56,38 +56,44 @@ int main(int argc, char *argv[]) {
 		}
 
 		int input = getch();
-
-		if (mode == NORMAL_MODE) {
-			switch (input) {
-				case '':
-					quit = 1;
-					break;
-				case 'i':
-					mode = INSERT_MODE;
-					break;
-				case 'k':
-					buffer.prev_line(window_width);
-					break;
-				case 'j':
-					buffer.next_line(window_width);
-					break;
-				case 'h':
-					buffer.cursor--;
-					break;
-				case 'l':
-					buffer.cursor++;
-					break;
+		if (byte_type(input) == 1) {
+			if (mode == NORMAL_MODE) {
+				switch (input) {
+					case '':
+						quit = 1;
+						break;
+					case 'i':
+						mode = INSERT_MODE;
+						break;
+					case 'k':
+						buffer.prev_line(window_width);
+						break;
+					case 'j':
+						buffer.next_line(window_width);
+						break;
+					case 'h':
+						buffer.cursor--;
+						break;
+					case 'l':
+						buffer.cursor++;
+						break;
+				}
+			} else {
+				switch (input) {
+					case '':
+						mode = NORMAL_MODE;
+						break;
+					case KEY_BACKSPACE:
+						buffer.cursor.pop();
+						break;
+					default:
+						buffer.cursor.push(input);
+				}
 			}
 		} else {
-			switch (input) {
-				case '':
-					mode = NORMAL_MODE;
-					break;
-				case KEY_BACKSPACE:
-					buffer.cursor.pop();
-					break;
-				default:
-					buffer.cursor.push(input);
+			buffer.cursor.push(input);
+			for (int i = 0; i < byte_type(input) - 1; i++) {
+				buffer.cursor.push(getch());
 			}
 		}
 	}
