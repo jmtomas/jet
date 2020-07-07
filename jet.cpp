@@ -64,6 +64,9 @@ int main() {
 				int clientfd = accept(listener, 0, 0);
 				ev.events = EPOLLIN | EPOLLET;
 				ev.data.fd = clientfd;
+				if (clients[clientfd]) {
+					delete clients[clientfd];
+				}
 				Client *c = new Client(scratch);
 				c->sockfd = clientfd;
 				clients[clientfd] = c;
