@@ -93,24 +93,6 @@ struct Point {
 		return next_byte();
 	}
 
-	uint64_t seek(uint8_t c, uint64_t limit) {
-		uint64_t travel_distance = 0;
-		while (!at_end() && next_byte() != c && travel_distance < limit) {
-			(*this)++;
-			travel_distance++;
-		}
-		return travel_distance;
-	}
-
-	uint64_t rseek(uint8_t c, uint64_t limit) {
-		uint64_t travel_distance = 0;
-		while (!at_start() && prev_byte() != c && travel_distance < limit) {
-			(*this)--;
-			travel_distance++;
-		}
-		return travel_distance;
-	}
-
 	void align_gap() {
 		while (page->gap_end < index_to_offset()) {
 			page->move_gap_forward();

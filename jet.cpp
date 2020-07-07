@@ -35,6 +35,10 @@ void parse_command(char *command, Client *client) {
 			client->show();
 		} else if (strcmp(token, "move") == 0) {
 			client->move();
+		} else if (strcmp(token, "push") == 0) {
+			client->push();
+		} else if (strcmp(token, "pop") == 0) {
+			client->pop();
 		} else {
 			client->args.push(atoi(token));
 		}
@@ -47,13 +51,15 @@ int main() {
 	scratch.read("LICENSE");
 
 	int listener = create_listener();
+
 	int epollfd = epoll_create1(0);
-	epoll_event events[MAX_EVENTS];
+
 	epoll_event ev;
 	ev.events = EPOLLIN;
 	ev.data.fd = listener;
 	epoll_ctl(epollfd, EPOLL_CTL_ADD, listener, &ev);
 
+	epoll_event events[MAX_EVENTS];
 	Client *clients[1024] = {};
 
 	for (;;) {

@@ -76,4 +76,12 @@ struct Client {
 			target++;
 		}
 	}
+
+	void push() {
+		cursor.push(args.pop());
+	}
+
+	void pop() {
+		cursor.pop();
+	}
 };

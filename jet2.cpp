@@ -1,14 +1,17 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
-#include <locale.h>
+#include <stdlib.h>
+#include <string.h>
 #include <curses.h>
-#include "page.cpp"
-#include "point.cpp"
-#include "buffer.cpp"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #define NORMAL_MODE 0
 #define INSERT_MODE 1
+#define PORT 6969
 #define pos(x, y) (x) + (y) * window_width
 
 int main(int argc, char *argv[]) {
@@ -18,15 +21,16 @@ int main(int argc, char *argv[]) {
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
-	if (argc > 1) {
-		buffer.read(argv[1]);
-	}
-
 	int window_height, window_width;
 	getmaxyx(stdscr, window_height, window_width);
 
-	int *view = new int[window_width * window_height];
+	char *view = new char[window_width * window_height];
 	for (int i = 0; i < window_width * window_height; view[i++] = 0);
+
+
+	int s = socket(AF_INET, SOCK_STREAM, 0);
+	sockaddr_in addr = { AF_INET, htons(PORT), htonl(INADDR_LOOPBACK)};
+	connect(s, (sockaddr *) &addr, sizeof(sockaddr_in));
 
 	int mode = NORMAL_MODE;
 
@@ -34,93 +38,50 @@ int main(int argc, char *argv[]) {
 	while (!quit) {
 		clear();
 
-		Point window_end(window_start);
-		int x = -1, y = -1;
-		for (int i = 0; i < window_height; i++) {
-			for (int j = 0; j < window_width; j++) {
-				if (window_end == cursor) {
-					x = j;
-					y = i;
-				}
-				view[pos(j, i)] = window_end.element();
-				if (window_end.element() == '\n') {
-					for (int k = j + 1; k < window_width; k++) {
-						view[pos(k, i)] = 0;
-					}
-					j = window_width;
-				} else if (window_end.element() == '\t') {
-					for (int k = j + 1; k < j + 8; k++) {
-						view[pos(k, i)] = 0;
-					}
-					j = j + 7;
-				}
-				window_end++;
-			}
-		}
+		char msg[32] = {};
+		int len = sprintf(msg, " %d %d show ", window_width, window_height);
+		write(s, msg, len);
+		read(s, view, window_width * window_height);
 		for (int i = 0; i < window_width * window_height; i++) {
-			printw("%lc", view[i]);
-		}
-		if (x != -1 && y != -1) {
-			move(y, x);
+			if (view[i]) {
+				printw("%c", view[i]);
+			}
 		}
 
+		memset(msg, 0, 32);
 		int input = getch();
-		if (byte_type(input) == 1) {
-			if (mode == NORMAL_MODE) {
-				switch (input) {
-					case '':
-						quit = 1;
-						break;
-					case 'i':
-						mode = INSERT_MODE;
-						break;
-					case 'j':
-						for (int i = pos(x, y); i < pos(x + 1, y + 1); i++) {
-							if (view[i]) cursor++;
-						}
-						cursor--;
-						if (y + 1 >= window_height) {
-							window_start.seek('\n', window_width - 1);
-							window_start++;
-						}
-						break;
-					case 'k':
-						for (int i = pos(x, y); i > pos(x, y - 1); i--) {
-							if (view[i]) cursor--;
-						}
-						if (y - 1 <= 0) {
-							window_start--;
-							window_start.rseek('\n', window_width - 1);
-						}
-						break;
-					case 'h':
-						cursor--;
-						break;
-					case 'l':
-						cursor++;
-						break;
-				}
-			} else {
-				switch (input) {
-					case '':
-						mode = NORMAL_MODE;
-						break;
-					case KEY_BACKSPACE:
-						cursor.pop();
-						break;
-					default:
-						cursor.push(input);
-				}
+		if (mode == NORMAL_MODE) {
+			switch (input) {
+				case '':
+					quit = 1;
+					break;
+				case 'i':
+					mode = INSERT_MODE;
+					break;
+				case 'h':
+					len = sprintf(msg, " -1 move ");
+					write(s, msg, len);
+					break;
+				case 'l':
+					len = sprintf(msg, " 1 move ");
+					write(s, msg, len);
+					break;
 			}
 		} else {
-			cursor.push(input);
-			for (int i = 0; i < byte_type(input) - 1; i++) {
-				cursor.push(getch());
+			switch (input) {
+				case '':
+					mode = NORMAL_MODE;
+					break;
+				case KEY_BACKSPACE:
+					len = sprintf(msg, " pop ");
+					write(s, msg, len);
+					break;
+				default:
+					len = sprintf(msg, " %d push ", input);
+					write(s, msg, len);
 			}
 		}
 	}
-
-	buffer.write(buffer.name);
 
 	endwin();
 	return 0;
