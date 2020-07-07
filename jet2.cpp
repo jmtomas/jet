@@ -43,9 +43,7 @@ int main(int argc, char *argv[]) {
 		write(s, msg, len);
 		read(s, view, window_width * window_height);
 		for (int i = 0; i < window_width * window_height; i++) {
-			if (view[i]) {
-				printw("%c", view[i]);
-			}
+			printw("%c", view[i]);
 		}
 
 		memset(msg, 0, 32);

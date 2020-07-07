@@ -1,6 +1,6 @@
 FLAGS=-ggdb -O0 -lcurses $(shell ncursesw6-config --cflags --libs)
 
-_PHONY:all
+_PHONY=all
 
 all:jet jet2
 
