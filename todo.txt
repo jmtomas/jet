@@ -1,1 +1,0 @@
-* free page correctly after no points point to it

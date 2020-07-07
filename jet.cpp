@@ -1,103 +1,81 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
-#include <locale.h>
-#include <curses.h>
-#define PAGE_SIZE 4096
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/epoll.h>
+
 #include "page.cpp"
 #include "point.cpp"
 #include "buffer.cpp"
+#include "client.cpp"
 
-#define NORMAL_MODE 0
-#define INSERT_MODE 1
+#define PORT 6969
+#define MAX_COMMAND_SIZE 128
+#define MAX_EVENTS 10
 
-int main(int argc, char *argv[]) {
-	setlocale(LC_ALL, "");
-	initscr();
-	cbreak();
-	noecho();
-	intrflush(stdscr, FALSE);
-	keypad(stdscr, TRUE);
+int create_listener() {
+	int s = socket(AF_INET, SOCK_STREAM, 0);
+	sockaddr_in addr = { AF_INET, htons(PORT), htonl(INADDR_LOOPBACK)};
+	int opt = 1;
+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
+	bind(s, (sockaddr *) &addr, sizeof(sockaddr_in));
+	listen(s, MAX_EVENTS);
+	return s;
+}
 
-	Buffer buffer("test");
-	Point window_start(buffer.start);
-
-	if (argc > 1) {
-		FILE *f = fopen(argv[1], "r");
-		char c;
-		while ((c = fgetc(f)) != EOF) {
-			buffer.cursor.push(c);
-		}
-		buffer.cursor = buffer.start;
-		fclose(f);
-	}
-
-	int window_height, window_width;
-	getmaxyx(stdscr, window_height, window_width);
-
-	int mode = NORMAL_MODE;
-
-	int quit = 0;
-	while (!quit) {
-		clear();
-
-		int x = -1, y = -1;
-		Point window_end(window_start);
-		while (!window_end.at_end() && getcury(stdscr) < window_height - 1) {
-			if (window_end == buffer.cursor) {
-				getyx(stdscr, y, x);
-			}
-			printw("%lc", window_end.element());
-			window_end++;
-		}
-		printw("%d", buffer.cursor.index);
-		if (x > -1 && y > -1) {
-			move(y, x);
-		}
-
-		int input = getch();
-		if (byte_type(input) == 1) {
-			if (mode == NORMAL_MODE) {
-				switch (input) {
-					case '':
-						quit = 1;
-						break;
-					case 'i':
-						mode = INSERT_MODE;
-						break;
-					case 'k':
-						buffer.prev_line(window_width);
-						break;
-					case 'j':
-						buffer.next_line(window_width);
-						break;
-					case 'h':
-						buffer.cursor--;
-						break;
-					case 'l':
-						buffer.cursor++;
-						break;
-				}
-			} else {
-				switch (input) {
-					case '':
-						mode = NORMAL_MODE;
-						break;
-					case KEY_BACKSPACE:
-						buffer.cursor.pop();
-						break;
-					default:
-						buffer.cursor.push(input);
-				}
-			}
+void parse_command(char *command, Client *client) {
+	char *token = strtok(command, " \n");
+	while (token) {
+		if (strcmp(token, "show") == 0) {
+			client->show();
+		} else if (strcmp(token, "move") == 0) {
+			client->move();
 		} else {
-			buffer.cursor.push(input);
-			for (int i = 0; i < byte_type(input) - 1; i++) {
-				buffer.cursor.push(getch());
+			client->args.push(atoi(token));
+		}
+		token = strtok(0, " \n");
+	}
+}
+
+int main() {
+	Buffer scratch("scratch");
+	scratch.read("LICENSE");
+
+	int listener = create_listener();
+	int epollfd = epoll_create1(0);
+	epoll_event events[MAX_EVENTS];
+	epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = listener;
+	epoll_ctl(epollfd, EPOLL_CTL_ADD, listener, &ev);
+
+	Client *clients[1024] = {};
+
+	for (;;) {
+		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+
+		for (int i = 0; i < nfds; i++) {
+			if (events[i].data.fd == listener) {
+				int clientfd = accept(listener, 0, 0);
+				ev.events = EPOLLIN | EPOLLET;
+				ev.data.fd = clientfd;
+				Client *c = new Client(scratch);
+				c->sockfd = clientfd;
+				clients[clientfd] = c;
+				epoll_ctl(epollfd, EPOLL_CTL_ADD, clientfd, &ev);
+			} else {
+				char command[MAX_COMMAND_SIZE] = {};
+				int clientfd = events[i].data.fd;
+				read(clientfd, command, MAX_COMMAND_SIZE - 1);
+				parse_command(command, clients[clientfd]);
 			}
 		}
 	}
 
-	endwin();
-	return 0;
+	close(listener);
 }
