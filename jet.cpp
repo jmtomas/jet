@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
@@ -48,7 +50,7 @@ void parse_command(char *command, Client *client) {
 
 int main() {
 	Buffer scratch("scratch");
-	scratch.read("LICENSE");
+	scratch.read_file("LICENSE");
 
 	int listener = create_listener();
 
