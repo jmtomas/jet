@@ -1,3 +1,5 @@
+#include "page.cpp"
+
 struct Buffer {
 	const char *name;
 	Page *storage;

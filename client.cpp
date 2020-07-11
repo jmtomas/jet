@@ -1,3 +1,5 @@
+#include "point.cpp"
+
 #define MAX_ARGS 16
 #define pos(x, y) (x) + (y) * window_w
 
@@ -28,7 +30,7 @@ struct Client {
 	ArgList args;
 
 	Client(const Buffer &b) :
-		cursor(b.storage, 0),
+		cursor(b),
 		window_start(cursor),
 		args(MAX_ARGS)
 	{}

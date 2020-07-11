@@ -61,6 +61,7 @@ struct Point {
 
 	Point() : page(0), index(0) {}
 	Point(Page* page, uint16_t index) : page(page), index(index) {}
+	Point(const Buffer &b) : page(b.storage), index(0) {}
 	Point(const Point &p) : page(p.page), index(p.index) {}
 
 	bool operator==(Point p) {

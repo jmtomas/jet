@@ -11,8 +11,6 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
-#include "page.cpp"
-#include "point.cpp"
 #include "buffer.cpp"
 #include "client.cpp"
 
