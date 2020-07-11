@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
@@ -48,7 +50,7 @@ void parse_command(char *command, Client *client) {
 
 int main() {
 	Buffer scratch("scratch");
-	scratch.read("LICENSE");
+	scratch.read_file("LICENSE");
 
 	int listener = create_listener();
 
@@ -62,7 +64,7 @@ int main() {
 	epoll_event events[MAX_EVENTS];
 	Client *clients[1024] = {};
 
-	for (;;) {
+	while (true) {
 		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
 		for (int i = 0; i < nfds; i++) {
