@@ -1,5 +1,3 @@
-#include "point.cpp"
-
 #define MAX_ARGS 16
 #define pos(x, y) (x) + (y) * window_w
 

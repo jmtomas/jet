@@ -1,8 +1,3 @@
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-
 #ifndef PAGE_SIZE
 #define PAGE_SIZE 4096
 #endif
@@ -59,28 +54,24 @@ struct Page {
 	}
 
 	void move_gap_forward() {
-		assert(gap_end < PAGE_SIZE);
 		elements[gap_start] = elements[gap_end];
 		gap_start++;
 		gap_end++;
 	}
 
 	void move_gap_backward() {
-		assert(gap_start > 0);
 		gap_end--;
 		gap_start--;
 		elements[gap_end] = elements[gap_start];
 	}
 
 	void push(uint8_t c) {
-		assert(element_count < PAGE_SIZE);
 		elements[gap_start] = c;
 		gap_start++;
 		element_count++;
 	}
 
 	void pop() {
-		assert(gap_start > 0);
 		gap_start--;
 		element_count--;
 	}

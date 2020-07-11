@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <curses.h>
 
@@ -8,6 +7,8 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+
+#include "ipc.cpp"
 
 #define NORMAL_MODE 0
 #define INSERT_MODE 1
@@ -27,7 +28,6 @@ int main(int argc, char *argv[]) {
 	char *view = new char[window_width * window_height];
 	for (int i = 0; i < window_width * window_height; view[i++] = 0);
 
-
 	int s = socket(AF_INET, SOCK_STREAM, 0);
 	sockaddr_in addr = { AF_INET, htons(PORT), htonl(INADDR_LOOPBACK)};
 	connect(s, (sockaddr *) &addr, sizeof(sockaddr_in));
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 		clear();
 
 		char msg[32] = {};
-		int len = sprintf(msg, " %d %d show ", window_width, window_height);
+		int len = sprintf(msg, "%d%d%d%d%d", OP_I4, window_width, OP_I4, window_height, OP_SHOW);
 		write(s, msg, len);
 		read(s, view, window_width * window_height);
 		for (int i = 0; i < window_width * window_height; i++) {
@@ -57,11 +57,11 @@ int main(int argc, char *argv[]) {
 					mode = INSERT_MODE;
 					break;
 				case 'h':
-					len = sprintf(msg, " -1 move ");
+					len = sprintf(msg, "%d%d%d", OP_I1, -1, OP_MOVE);
 					write(s, msg, len);
 					break;
 				case 'l':
-					len = sprintf(msg, " 1 move ");
+					len = sprintf(msg, "%d%d%d", OP_I1, 1, OP_MOVE);
 					write(s, msg, len);
 					break;
 			}
@@ -71,11 +71,11 @@ int main(int argc, char *argv[]) {
 					mode = NORMAL_MODE;
 					break;
 				case KEY_BACKSPACE:
-					len = sprintf(msg, " pop ");
+					len = sprintf(msg, "%d", OP_DELETE);
 					write(s, msg, len);
 					break;
 				default:
-					len = sprintf(msg, " %d push ", input);
+					len = sprintf(msg, "%d%d%d", OP_I1, input, OP_INSERT);
 					write(s, msg, len);
 			}
 		}

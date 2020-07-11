@@ -1,6 +1,7 @@
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,7 +12,10 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
+#include "ipc.cpp"
+#include "page.cpp"
 #include "buffer.cpp"
+#include "point.cpp"
 #include "client.cpp"
 
 #define PORT 6969

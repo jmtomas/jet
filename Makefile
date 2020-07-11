@@ -1,4 +1,4 @@
-FLAGS=-ggdb -O0 -lcurses $(shell ncursesw6-config --cflags --libs)
+FLAGS=-ggdb -O0
 
 _PHONY=all
 
@@ -8,4 +8,4 @@ jet: Makefile *.cpp
 	g++ $(FLAGS) jet.cpp -o jet
 
 jet2: Makefile *.cpp
-	g++ $(FLAGS) jet2.cpp -o jet2
+	g++ $(FLAGS) -lcurses $(shell ncursesw6-config --cflags --libs) jet2.cpp -o jet2
