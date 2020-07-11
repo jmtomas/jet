@@ -64,7 +64,7 @@ int main() {
 	epoll_event events[MAX_EVENTS];
 	Client *clients[1024] = {};
 
-	for (;;) {
+	while (true) {
 		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
 		for (int i = 0; i < nfds; i++) {

@@ -20,11 +20,14 @@ struct Buffer {
 		close(file);
 	}
 
-	void write_file(const char *file) {
-		FILE *f = fopen(file, "w+");
-		for (Point p(storage, 0); !p.at_end(); p++) {
-			fputc(p.element(), f);
+	void write_file(const char *pathname) {
+		int file = open(pathname, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		Page *iter = storage;
+		while (iter) {
+			write(file, iter->elements, iter->gap_start);
+			write(file, iter->elements + iter->gap_end, PAGE_SIZE - iter->gap_end);
+			iter = iter->next;
 		}
-		fclose(f);
+		close(file);
 	}
 };
