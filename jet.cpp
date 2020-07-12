@@ -1,6 +1,7 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,11 +12,13 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
+#include "ipc.cpp"
+#include "page.cpp"
 #include "buffer.cpp"
+#include "point.cpp"
 #include "client.cpp"
 
 #define PORT 6969
-#define MAX_COMMAND_SIZE 128
 #define MAX_EVENTS 10
 
 int create_listener() {
@@ -26,24 +29,6 @@ int create_listener() {
 	bind(s, (sockaddr *) &addr, sizeof(sockaddr_in));
 	listen(s, MAX_EVENTS);
 	return s;
-}
-
-void parse_command(char *command, Client *client) {
-	char *token = strtok(command, " \n");
-	while (token) {
-		if (strcmp(token, "show") == 0) {
-			client->show();
-		} else if (strcmp(token, "move") == 0) {
-			client->move();
-		} else if (strcmp(token, "push") == 0) {
-			client->push();
-		} else if (strcmp(token, "pop") == 0) {
-			client->pop();
-		} else {
-			client->args.push(atoi(token));
-		}
-		token = strtok(0, " \n");
-	}
 }
 
 int main() {
@@ -78,10 +63,7 @@ int main() {
 				clients[clientfd] = c;
 				epoll_ctl(epollfd, EPOLL_CTL_ADD, clientfd, &ev);
 			} else {
-				char command[MAX_COMMAND_SIZE] = {};
-				int clientfd = events[i].data.fd;
-				read(clientfd, command, MAX_COMMAND_SIZE - 1);
-				parse_command(command, clients[clientfd]);
+				clients[events[i].data.fd]->parse_message();
 			}
 		}
 	}

@@ -1,13 +1,14 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <curses.h>
+#include <cursesw.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+
+#include "ipc.cpp"
 
 #define NORMAL_MODE 0
 #define INSERT_MODE 1
@@ -27,7 +28,6 @@ int main(int argc, char *argv[]) {
 	char *view = new char[window_width * window_height];
 	for (int i = 0; i < window_width * window_height; view[i++] = 0);
 
-
 	int s = socket(AF_INET, SOCK_STREAM, 0);
 	sockaddr_in addr = { AF_INET, htons(PORT), htonl(INADDR_LOOPBACK)};
 	connect(s, (sockaddr *) &addr, sizeof(sockaddr_in));
@@ -38,15 +38,19 @@ int main(int argc, char *argv[]) {
 	while (!quit) {
 		clear();
 
-		char msg[32] = {};
-		int len = sprintf(msg, " %d %d show ", window_width, window_height);
-		write(s, msg, len);
+		uint8_t msg[5];
+		msg[0] = OP_SHOW;
+		encode2(window_width, msg, 1);
+		encode2(window_height, msg, 3);
+		write(s, msg, 5);
 		read(s, view, window_width * window_height);
 		for (int i = 0; i < window_width * window_height; i++) {
 			printw("%c", view[i]);
 		}
 
-		memset(msg, 0, 32);
+		uint8_t mov[2];
+		uint8_t del[1];
+		uint8_t ins[2];
 		int input = getch();
 		if (mode == NORMAL_MODE) {
 			switch (input) {
@@ -57,12 +61,14 @@ int main(int argc, char *argv[]) {
 					mode = INSERT_MODE;
 					break;
 				case 'h':
-					len = sprintf(msg, " -1 move ");
-					write(s, msg, len);
+					mov[0] = OP_MOVE1;
+					mov[1] = -1;
+					write(s, mov, 2);
 					break;
 				case 'l':
-					len = sprintf(msg, " 1 move ");
-					write(s, msg, len);
+					mov[0] = OP_MOVE1;
+					mov[1] = 1;
+					write(s, mov, 2);
 					break;
 			}
 		} else {
@@ -71,12 +77,13 @@ int main(int argc, char *argv[]) {
 					mode = NORMAL_MODE;
 					break;
 				case KEY_BACKSPACE:
-					len = sprintf(msg, " pop ");
-					write(s, msg, len);
+					del[0] = OP_DELETE;
+					write(s, del, 1);
 					break;
 				default:
-					len = sprintf(msg, " %d push ", input);
-					write(s, msg, len);
+					ins[0] = OP_INSERT;
+					ins[1] = input;
+					write(s, ins, 2);
 			}
 		}
 	}
