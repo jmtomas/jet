@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 	while (!quit) {
 		clear();
 
-		uint8_t msg[5];
+		int8_t msg[5];
 		msg[0] = OP_SHOW;
 		encode2(window_width, msg, 1);
 		encode2(window_height, msg, 3);
@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
 			printw("%c", view[i]);
 		}
 
-		uint8_t mov[2];
-		uint8_t del[1];
-		uint8_t ins[2];
+		int8_t mov[2];
+		int8_t del[1];
+		int8_t ins[2];
 		int input = getch();
 		if (mode == NORMAL_MODE) {
 			switch (input) {

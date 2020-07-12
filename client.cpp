@@ -9,9 +9,9 @@ struct Client {
 	Client(const Buffer &b) : cursor(b), window_start(cursor) {}
 
 	void parse_message() {
-		uint8_t message[MAX_MSG_SIZE] = {};
+		int8_t message[MAX_MSG_SIZE] = {};
 		read(sockfd, message, MAX_MSG_SIZE - 1);
-		uint8_t *iter = message;
+		int8_t *iter = message;
 		while (*iter) {
 			switch (*iter) {
 				case OP_MOVE1:
@@ -46,7 +46,7 @@ struct Client {
 		}
 	}
 
-	void show(int16_t window_w, int16_t window_h) {
+	void show(size_t window_w, size_t window_h) {
 		char *view = new char[window_w * window_h];
 
 		Point window_end(window_start);
