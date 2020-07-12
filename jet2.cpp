@@ -38,15 +38,19 @@ int main(int argc, char *argv[]) {
 	while (!quit) {
 		clear();
 
-		char msg[32] = {};
-		int len = sprintf(msg, "%d%d%d%d%d", OP_I4, window_width, OP_I4, window_height, OP_SHOW);
-		write(s, msg, len);
+		uint8_t msg[5];
+		msg[0] = OP_SHOW;
+		encode2(window_width, msg, 1);
+		encode2(window_height, msg, 3);
+		write(s, msg, 5);
 		read(s, view, window_width * window_height);
 		for (int i = 0; i < window_width * window_height; i++) {
 			printw("%c", view[i]);
 		}
 
-		memset(msg, 0, 32);
+		uint8_t mov[2];
+		uint8_t del[1];
+		uint8_t ins[2];
 		int input = getch();
 		if (mode == NORMAL_MODE) {
 			switch (input) {
@@ -57,12 +61,14 @@ int main(int argc, char *argv[]) {
 					mode = INSERT_MODE;
 					break;
 				case 'h':
-					len = sprintf(msg, "%d%d%d", OP_I1, -1, OP_MOVE);
-					write(s, msg, len);
+					mov[0] = OP_MOVE1;
+					mov[1] = -1;
+					write(s, mov, 2);
 					break;
 				case 'l':
-					len = sprintf(msg, "%d%d%d", OP_I1, 1, OP_MOVE);
-					write(s, msg, len);
+					mov[0] = OP_MOVE1;
+					mov[1] = 1;
+					write(s, mov, 2);
 					break;
 			}
 		} else {
@@ -71,12 +77,13 @@ int main(int argc, char *argv[]) {
 					mode = NORMAL_MODE;
 					break;
 				case KEY_BACKSPACE:
-					len = sprintf(msg, "%d", OP_DELETE);
-					write(s, msg, len);
+					del[0] = OP_DELETE;
+					write(s, del, 1);
 					break;
 				default:
-					len = sprintf(msg, "%d%d%d", OP_I1, input, OP_INSERT);
-					write(s, msg, len);
+					ins[0] = OP_INSERT;
+					ins[1] = input;
+					write(s, ins, 2);
 			}
 		}
 	}

@@ -1,41 +1,52 @@
-#define MAX_ARGS 16
+#define MAX_MSG_SIZE 128
 #define pos(x, y) (x) + (y) * window_w
-
-struct ArgList {
-	int len, cap;
-	int *args;
-
-	ArgList(int cap) : len(0), cap(cap) {
-		args = new int[cap];
-		for (int i = 0; i < cap; args[i++] = 0);
-	}
-	~ArgList() { delete[] args; }
-
-	int pop() {
-		return args[--len];
-	}
-
-	void push(int value) {
-		args[len++] = value;
-	}
-
-};
 
 struct Client {
 	int sockfd;
 	Point cursor;
 	Point window_start;
-	ArgList args;
 
-	Client(const Buffer &b) :
-		cursor(b),
-		window_start(cursor),
-		args(MAX_ARGS)
-	{}
+	Client(const Buffer &b) : cursor(b), window_start(cursor) {}
 
-	void show() {
-		int window_h = args.pop();
-		int window_w = args.pop();
+	void parse_message() {
+		uint8_t message[MAX_MSG_SIZE] = {};
+		read(sockfd, message, MAX_MSG_SIZE - 1);
+		uint8_t *iter = message;
+		while (*iter) {
+			switch (*iter) {
+				case OP_MOVE1:
+					move(iter[1]);
+					iter += 2;
+					break;
+				case OP_MOVE2:
+					move(decode2(iter, 1));
+					iter += 3;
+					break;
+				case OP_MOVE4:
+					move(decode4(iter, 1));
+					iter += 5;
+					break;
+				case OP_MOVE8:
+					move(decode8(iter, 1));
+					iter += 9;
+					break;
+				case OP_INSERT:
+					push(iter[1]);
+					iter += 2;
+					break;
+				case OP_DELETE:
+					pop();
+					iter += 1;
+					break;
+				case OP_SHOW:
+					show(decode2(iter, 1), decode2(iter, 3));
+					iter += 6;
+					break;
+			}
+		}
+	}
+
+	void show(int16_t window_w, int16_t window_h) {
 		char *view = new char[window_w * window_h];
 
 		Point window_end(window_start);
@@ -65,8 +76,7 @@ struct Client {
 		delete[] view;
 	}
 
-	void move() {
-		int target = args.pop();
+	void move(int64_t target) {
 		while (target > 0) {
 			cursor++;
 			target--;
@@ -77,8 +87,8 @@ struct Client {
 		}
 	}
 
-	void push() {
-		cursor.push(args.pop());
+	void push(int8_t input) {
+		cursor.push(input);
 	}
 
 	void pop() {
