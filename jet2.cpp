@@ -33,6 +33,8 @@ int main(int argc, char *argv[]) {
 	connect(s, (sockaddr *) &addr, sizeof(sockaddr_in));
 
 	int mode = NORMAL_MODE;
+	int cursor_x = 0;
+	int cursor_y = 0;
 
 	int quit = 0;
 	while (!quit) {
@@ -47,6 +49,7 @@ int main(int argc, char *argv[]) {
 		for (int i = 0; i < window_width * window_height; i++) {
 			printw("%c", view[i]);
 		}
+		move(cursor_y, cursor_x);
 
 		int8_t mov[2];
 		int8_t del[1];
@@ -64,11 +67,31 @@ int main(int argc, char *argv[]) {
 					mov[0] = OP_MOVE1;
 					mov[1] = -1;
 					write(s, mov, 2);
+					do {
+						if (cursor_x <= 0) {
+							if (cursor_y > 0) {
+								cursor_x = window_width - 1;
+								cursor_y--;
+							}
+						} else {
+							cursor_x--;
+						}
+					} while (view[pos(cursor_x, cursor_y)] == 0);
 					break;
 				case 'l':
 					mov[0] = OP_MOVE1;
 					mov[1] = 1;
 					write(s, mov, 2);
+					do {
+						if (cursor_x >= window_width - 1) {
+							if (cursor_y < window_height - 1) {
+								cursor_x = 0;
+								cursor_y++;
+							}
+						} else {
+							cursor_x++;
+						}
+					} while (view[pos(cursor_x, cursor_y)] == 0);
 					break;
 			}
 		} else {
