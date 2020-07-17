@@ -87,6 +87,8 @@ int main(int argc, char *argv[]) {
 							if (cursor_y < window_height - 1) {
 								cursor_x = 0;
 								cursor_y++;
+							} else {
+								break;
 							}
 						} else {
 							cursor_x++;
