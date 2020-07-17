@@ -52,11 +52,7 @@ struct Client {
 		Point window_end(window_start);
 		for (int i = 0; i < window_h; i++) {
 			for (int j = 0; j < window_w; j++) {
-				if (window_end == cursor) {
-					view[pos(j, i)] = '$';
-				} else {
-					view[pos(j, i)] = window_end.element();
-				}
+				view[pos(j, i)] = window_end.element();
 				if (window_end.element() == '\n') {
 					for (int k = j + 1; k < window_w; k++) {
 						view[pos(k, i)] = 0;
