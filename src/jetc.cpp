@@ -8,12 +8,13 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "ipc.cpp"
+#include "common/ipc.cpp"
+#include "client/window.cpp"
+#include "client/cursor.cpp"
 
 #define NORMAL_MODE 0
 #define INSERT_MODE 1
 #define PORT 6969
-#define pos(x, y) (x) + (y) * window_width
 
 int main(int argc, char *argv[]) {
 	initscr();
@@ -22,19 +23,16 @@ int main(int argc, char *argv[]) {
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
-	int window_height, window_width;
-	getmaxyx(stdscr, window_height, window_width);
-
-	char *view = new char[window_width * window_height];
-	for (int i = 0; i < window_width * window_height; view[i++] = 0);
+	Window window;
+	getmaxyx(stdscr, window.height, window.width);
+	window.init();
 
 	int s = socket(AF_INET, SOCK_STREAM, 0);
-	sockaddr_in addr = { AF_INET, htons(PORT), htonl(INADDR_LOOPBACK)};
+	sockaddr_in addr = { AF_INET, htons(PORT), htonl(INADDR_LOOPBACK) };
 	connect(s, (sockaddr *) &addr, sizeof(sockaddr_in));
 
 	int mode = NORMAL_MODE;
-	int cursor_x = 0;
-	int cursor_y = 0;
+	Cursor cursor = { 0, 0, &window };
 
 	int quit = 0;
 	while (!quit) {
@@ -42,14 +40,14 @@ int main(int argc, char *argv[]) {
 
 		int8_t msg[5];
 		msg[0] = OP_SHOW;
-		encode2(window_width, msg, 1);
-		encode2(window_height, msg, 3);
+		encode2(window.width, msg, 1);
+		encode2(window.height, msg, 3);
 		write(s, msg, 5);
-		read(s, view, window_width * window_height);
-		for (int i = 0; i < window_width * window_height; i++) {
-			printw("%c", view[i]);
+		read(s, window.view, window.width * window.height);
+		for (int i = 0; i < window.width * window.height; i++) {
+			printw("%c", window.view[i]);
 		}
-		move(cursor_y, cursor_x);
+		move(cursor.y, cursor.x);
 
 		int8_t mov[2];
 		int8_t del[1];
@@ -67,33 +65,13 @@ int main(int argc, char *argv[]) {
 					mov[0] = OP_MOVE1;
 					mov[1] = -1;
 					write(s, mov, 2);
-					do {
-						if (cursor_x <= 0) {
-							if (cursor_y > 0) {
-								cursor_x = window_width - 1;
-								cursor_y--;
-							}
-						} else {
-							cursor_x--;
-						}
-					} while (view[pos(cursor_x, cursor_y)] == 0);
+					cursor.move_left();
 					break;
 				case 'l':
 					mov[0] = OP_MOVE1;
 					mov[1] = 1;
 					write(s, mov, 2);
-					do {
-						if (cursor_x >= window_width - 1) {
-							if (cursor_y < window_height - 1) {
-								cursor_x = 0;
-								cursor_y++;
-							} else {
-								break;
-							}
-						} else {
-							cursor_x++;
-						}
-					} while (view[pos(cursor_x, cursor_y)] == 0);
+					cursor.move_right();
 					break;
 			}
 		} else {
@@ -112,6 +90,8 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	}
+
+	close(s);
 
 	endwin();
 	return 0;
