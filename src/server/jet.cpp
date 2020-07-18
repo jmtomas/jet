@@ -12,11 +12,11 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
-#include "common/ipc.cpp"
-#include "server/page.cpp"
-#include "server/buffer.cpp"
-#include "server/point.cpp"
-#include "server/client.cpp"
+#include <common/ipc.cpp>
+#include <server/page.cpp>
+#include <server/buffer.cpp>
+#include <server/point.cpp>
+#include <server/client.cpp>
 
 #define PORT 6969
 #define MAX_EVENTS 10

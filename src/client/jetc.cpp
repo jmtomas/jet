@@ -8,9 +8,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "common/ipc.cpp"
-#include "client/window.cpp"
-#include "client/cursor.cpp"
+#include <common/ipc.cpp>
+#include <client/window.cpp>
+#include <client/cursor.cpp>
 
 #define NORMAL_MODE 0
 #define INSERT_MODE 1
