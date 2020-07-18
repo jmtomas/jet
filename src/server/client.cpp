@@ -11,38 +11,28 @@ struct Client {
 	void parse_message() {
 		int8_t message[MAX_MSG_SIZE] = {};
 		read(sockfd, message, MAX_MSG_SIZE - 1);
-		int8_t *iter = message;
-		while (*iter) {
-			switch (*iter) {
-				case OP_MOVE1:
-					move(iter[1]);
-					iter += 2;
-					break;
-				case OP_MOVE2:
-					move(decode2(iter, 1));
-					iter += 3;
-					break;
-				case OP_MOVE4:
-					move(decode4(iter, 1));
-					iter += 5;
-					break;
-				case OP_MOVE8:
-					move(decode8(iter, 1));
-					iter += 9;
-					break;
-				case OP_INSERT:
-					push(iter[1]);
-					iter += 2;
-					break;
-				case OP_DELETE:
-					pop();
-					iter += 1;
-					break;
-				case OP_SHOW:
-					show(decode2(iter, 1), decode2(iter, 3));
-					iter += 6;
-					break;
-			}
+		switch (message[0]) {
+			case OP_MOVE1:
+				move(message[1]);
+				break;
+			case OP_MOVE2:
+				move(decode2(message, 1));
+				break;
+			case OP_MOVE4:
+				move(decode4(message, 1));
+				break;
+			case OP_MOVE8:
+				move(decode8(message, 1));
+				break;
+			case OP_INSERT:
+				push(message[1]);
+				break;
+			case OP_DELETE:
+				pop();
+				break;
+			case OP_SHOW:
+				show(decode2(message, 1), decode2(message, 3));
+				break;
 		}
 	}
 
