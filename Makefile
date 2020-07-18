@@ -1,8 +1,8 @@
-FLAGS=-ggdb -O0 -I ./src/
+FLAGS=-O3 -I ./src/
 
 _PHONY=all
 
-all:jet jetc
+all: jet jetc
 
 jet: Makefile src/server/*.cpp src/common/*.cpp
 	g++ $(FLAGS) src/server/jet.cpp -o $@
