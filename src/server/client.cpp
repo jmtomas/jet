@@ -2,15 +2,15 @@
 #define pos(x, y) (x) + (y) * window_w
 
 struct Client {
-	int sockfd;
+	Socket io;
 	Point cursor;
 	Point window_start;
 
-	Client(const Buffer &b) : cursor(b), window_start(cursor) {}
+	Client(const Buffer &b, int fd) : io(fd), cursor(b), window_start(cursor) {}
 
 	void parse_message() {
 		int8_t message[MAX_MSG_SIZE] = {};
-		read(sockfd, message, MAX_MSG_SIZE - 1);
+		io.recv(message, MAX_MSG_SIZE - 1);
 		switch (message[0]) {
 			case OP_MOVE1:
 				move(message[1]);
@@ -58,7 +58,7 @@ struct Client {
 			}
 		}
 
-		write(sockfd, view, window_w * window_h);
+		io.send(view, window_w * window_h);
 		delete[] view;
 	}
 

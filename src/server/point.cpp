@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct Point {
+class Point {
 	Page *page;
 	uint16_t index;
 

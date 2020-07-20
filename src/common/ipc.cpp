@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 enum Operation {
 	OP_NULL = 0,
 	OP_MOVE1,
