@@ -1,4 +1,4 @@
-#define MAX_MSG_SIZE 128
+#define MAX_MSG_SIZE 8
 #define pos(x, y) (x) + (y) * window_w
 
 struct Client {
@@ -11,29 +11,48 @@ struct Client {
 	void parse_message() {
 		int8_t message[MAX_MSG_SIZE] = {};
 		io.recv(message, MAX_MSG_SIZE - 1);
-		switch (message[0]) {
-			case OP_MOVE1:
-				move(message[1]);
-				break;
-			case OP_MOVE2:
-				move(decode2(message, 1));
-				break;
-			case OP_MOVE4:
-				move(decode4(message, 1));
-				break;
-			case OP_MOVE8:
-				move(decode8(message, 1));
-				break;
-			case OP_INSERT:
-				push(message[1]);
-				break;
-			case OP_DELETE:
-				pop();
-				break;
-			case OP_SHOW:
-				show(decode2(message, 1), decode2(message, 3));
-				break;
+		int8_t *iter = message;
+		while (iter[0]) {
+			switch (iter[0]) {
+				case OP_MOVE1:
+					move(iter[1]);
+					iter += 2;
+					break;
+				case OP_MOVE2:
+					move(decode2(iter, 1));
+					iter += 3;
+					break;
+				case OP_MOVE4:
+					move(decode4(iter, 1));
+					iter += 5;
+					break;
+				case OP_MOVE8:
+					move(decode8(iter, 1));
+					iter += 9;
+					break;
+				case OP_INSERT:
+					push(iter[1]);
+					iter += 2;
+					break;
+				case OP_DELETE:
+					pop();
+					iter += 1;
+					break;
+				case OP_SHOW:
+					show(decode2(iter, 1), decode2(iter, 3));
+					iter += 5;
+					break;
+				default:
+					iter++;
+			}
 		}
+		for (int i = 0; i < MAX_MSG_SIZE; i++) {
+			if (message[i])
+				printf("%02hhx ", message[i]);
+			else
+				printf(".. ");
+		}
+		printf("\n");
 	}
 
 	void show(size_t window_w, size_t window_h) {
