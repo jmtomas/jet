@@ -57,12 +57,17 @@ struct Client {
 
 	void show(size_t window_w, size_t window_h) {
 		char *view = new char[window_w * window_h];
+		int *line_ends = new int[window_h];
+		for (int i = 0; i < window_h; i++) {
+			line_ends[i] = window_w;
+		}
 
 		Point window_end(window_start);
 		for (int i = 0; i < window_h; i++) {
 			for (int j = 0; j < window_w; j++) {
 				view[pos(j, i)] = window_end.element();
 				if (window_end.element() == '\n') {
+					line_ends[i] = j;
 					for (int k = j + 1; k < window_w; k++) {
 						view[pos(k, i)] = 0;
 					}
@@ -78,7 +83,9 @@ struct Client {
 		}
 
 		io.send(view, window_w * window_h);
+		io.send(line_ends, window_h);
 		delete[] view;
+		delete[] line_ends;
 	}
 
 	void move(int64_t target) {
