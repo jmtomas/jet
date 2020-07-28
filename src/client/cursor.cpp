@@ -1,9 +1,7 @@
-class Cursor {
+struct Cursor {
 	int x;
 	int y;
 	Window &w;
-
-	public:
 
 	Cursor(Window &w) : x(0), y(0), w(w) {}
 
