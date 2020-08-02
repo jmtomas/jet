@@ -1,58 +1,51 @@
-#define MAX_MSG_SIZE 8
 #define pos(x, y) (x) + (y) * window_w
 
 struct Client {
 	Socket io;
 	Point cursor;
 	Point window_start;
+	Message msg;
 
 	Client(const Buffer &b, int fd) : io(fd), cursor(b), window_start(cursor) {}
 
 	void parse_message() {
-		int8_t message[MAX_MSG_SIZE] = {};
-		io.recv(message, MAX_MSG_SIZE - 1);
-		int8_t *iter = message;
-		while (iter[0]) {
-			switch (iter[0]) {
+		size_t length = io.recv(msg);
+		while (msg.offset < length) {
+			switch (msg.decode1()) {
 				case OP_MOVE1:
-					move(iter[1]);
-					iter += 2;
+					move(msg.decode1());
 					break;
 				case OP_MOVE2:
-					move(decode2(iter, 1));
-					iter += 3;
+					move(msg.decode2());
 					break;
 				case OP_MOVE4:
-					move(decode4(iter, 1));
-					iter += 5;
+					move(msg.decode4());
 					break;
 				case OP_MOVE8:
-					move(decode8(iter, 1));
-					iter += 9;
+					move(msg.decode8());
 					break;
 				case OP_INSERT:
-					push(iter[1]);
-					iter += 2;
+					push(msg.decode1());
 					break;
 				case OP_DELETE:
 					pop();
-					iter += 1;
 					break;
 				case OP_SHOW:
-					show(decode2(iter, 1), decode2(iter, 3));
-					iter += 5;
+					int width = msg.decode2();
+					int height = msg.decode2();
+					show(width, height);
 					break;
-				default:
-					iter++;
 			}
 		}
-		for (int i = 0; i < MAX_MSG_SIZE; i++) {
-			if (message[i])
-				printf("%02hhx ", message[i]);
+#if 1
+		for (int i = 0; i < length; i++) {
+			if (msg.data[i])
+				printf("%02hhx ", msg.data[i]);
 			else
 				printf(".. ");
 		}
 		printf("\n");
+#endif
 	}
 
 	void show(size_t window_w, size_t window_h) {

@@ -3,10 +3,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-class File {
+struct File {
 	int descriptor;
-
-	public:
 
 	File(const char *filepath, int flags) {
 		descriptor = open(filepath, flags);

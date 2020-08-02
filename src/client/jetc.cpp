@@ -12,13 +12,13 @@
 Socket io;
 Window window;
 Cursor cursor(window);
+Message msg;
 
 void update() {
-	int8_t msg[5];
-	msg[0] = OP_SHOW;
-	encode2(window.width, msg, 1);
-	encode2(window.height, msg, 3);
-	io.send(msg, 5);
+	msg.encode1(OP_SHOW);
+	msg.encode2(window.width);
+	msg.encode2(window.height);
+	io.send(msg);
 	io.recv(window.view, window.width * window.height);
 	io.recv(window.line_ends, window.height);
 
@@ -27,33 +27,29 @@ void update() {
 }
 
 void move_left() {
-	int8_t mov[2];
-	mov[0] = OP_MOVE1;
-	mov[1] = -1;
-	io.send(mov, 2);
+	msg.encode1(OP_MOVE1);
+	msg.encode1(-1);
+	io.send(msg);
 	cursor.move_left();
 }
 
 void move_right() {
-	int8_t mov[2];
-	mov[0] = OP_MOVE1;
-	mov[1] = 1;
-	io.send(mov, 2);
+	msg.encode1(OP_MOVE1);
+	msg.encode1(1);
+	io.send(msg);
 	cursor.move_right();
 }
 
 void delete_element() {
-	int8_t del;
-	del = OP_DELETE;
-	io.send(&del, 1);
+	msg.encode1(OP_DELETE);
+	io.send(msg);
 	cursor.move_left();
 }
 
 void insert_element(int input) {
-	int8_t ins[2];
-	ins[0] = OP_INSERT;
-	ins[1] = input;
-	io.send(ins, 2);
+	msg.encode1(OP_INSERT);
+	msg.encode1(input);
+	io.send(msg);
 	cursor.move_right();
 }
 

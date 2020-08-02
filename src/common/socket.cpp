@@ -8,10 +8,8 @@
 
 #define PORT 6969
 
-class Socket {
+struct Socket {
 	int descriptor;
-
-	public:
 
 	Socket() {
 		descriptor = socket(AF_INET, SOCK_STREAM, 0);
@@ -60,12 +58,23 @@ class Socket {
 		::connect(descriptor, (sockaddr *) &addr, sizeof(sockaddr_in));
 	}
 
-	size_t send(void *msg, size_t length) {
+	size_t send(const void *msg, size_t length) {
 		return write(descriptor, msg, length);
+	}
+
+	size_t send(Message &msg) {
+		size_t result = write(descriptor, msg.data, msg.offset);
+		msg.offset = 0;
+		return result;
 	}
 
 	size_t recv(void *msg, size_t length) {
 		return read(descriptor, msg, length);
+	}
+
+	size_t recv(Message &msg) {
+		msg.offset = 0;
+		return read(descriptor, msg.data, MESSAGE_SIZE);
 	}
 
 	~Socket() {
