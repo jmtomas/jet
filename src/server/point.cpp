@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-class Point {
+struct Point {
 	Page *page;
 	uint16_t index;
 
@@ -54,9 +54,6 @@ class Point {
 			index = page->element_count;
 		}
 	}
-
-
-	public:
 
 	Point() : page(0), index(0) {}
 	Point(Page* page, uint16_t index) : page(page), index(index) {}

@@ -76,7 +76,7 @@ struct Client {
 		}
 
 		io.send(view, window_w * window_h);
-		io.send(line_ends, window_h);
+		io.send(line_ends, window_h * sizeof(int));
 		delete[] view;
 		delete[] line_ends;
 	}

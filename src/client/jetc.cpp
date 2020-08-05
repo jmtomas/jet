@@ -20,7 +20,7 @@ void update() {
 	msg.encode2(window.height);
 	io.send(msg);
 	io.recv(window.view, window.width * window.height);
-	io.recv(window.line_ends, window.height);
+	io.recv(window.line_ends, window.height * sizeof(int));
 
 	window.update();
 	cursor.update();

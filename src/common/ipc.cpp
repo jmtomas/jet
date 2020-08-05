@@ -17,10 +17,6 @@ struct Message {
 	uint8_t data[MESSAGE_SIZE] = {};
 	int offset = 0;
 
-	bool at_end() {
-		return data[offset] == 0;
-	}
-
 	void encode1(int8_t input) {
 		data[offset++] = input;
 	}
