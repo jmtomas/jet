@@ -32,9 +32,21 @@ struct Cursor {
 	}
 
 	void move_up() {
+		if (y != 0) {
+			y--;
+			if (x > w.line_ends[y]) {
+				x = w.line_ends[y];
+			}
+		}
 	}
 
 	void move_down() {
+		if (element()) {
+			y++;
+			if (x > w.line_ends[y]) {
+				x = w.line_ends[y];
+			}
+		}
 	}
 
 	void update() {

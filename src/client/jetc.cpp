@@ -40,6 +40,14 @@ void move_right() {
 	cursor.move_right();
 }
 
+void move_down() {
+	cursor.move_down();
+}
+
+void move_up() {
+	cursor.move_up();
+}
+
 void delete_element() {
 	msg.encode1(OP_DELETE);
 	io.send(msg);
@@ -72,6 +80,12 @@ int main(int argc, char *argv[]) {
 					break;
 				case 'h':
 					move_left();
+					break;
+				case 'j':
+					move_down();
+					break;
+				case 'k':
+					move_up();
 					break;
 				case 'l':
 					move_right();
